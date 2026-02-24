@@ -4,6 +4,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+> **Note for English speakers:**
+> I am a Japanese speaker and a beginner in programming. This app was developed with the help of AI (Claude Code / Antigravity). I use AI for English translation, so my English might be slightly unnatural. Issues and pull requests are welcome in both English and Japanese!
+
 > アカウント登録不要・インターネット接続不要。あなたの作品データはブラウザの外に出ません。
 
 ---
