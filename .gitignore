@@ -1,0 +1,38 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+nul
+
+# デバッグ・修復用スクリプト（公開リポジトリには含めない）
+debug_dnd.js
+repair_db.js
+repair_db_pup.js
+map_converter.cjs
+vite_log.txt
+
+# AIエージェント設定ファイル
+.agents/
+
+# ルート直下の取扱説明書（公開用はpublic/に配置）
+取扱説明書.html

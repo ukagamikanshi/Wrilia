@@ -1,0 +1,89 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "includes": ["src/**", "!!**/dist", "!!**/node_modules"]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "suspicious": {
+                "noConsole": "off"
+            },
+            "a11y": {
+                "noAutofocus": "warn",
+                "noDistractingElements": "warn",
+                "noHeaderScope": "warn",
+                "noInteractiveElementToNoninteractiveRole": "warn",
+                "noLabelWithoutControl": "warn",
+                "noNoninteractiveElementInteractions": "warn",
+                "noNoninteractiveElementToInteractiveRole": "warn",
+                "noNoninteractiveTabindex": "warn",
+                "noPositiveTabindex": "warn",
+                "noRedundantAlt": "warn",
+                "noRedundantRoles": "warn",
+                "noStaticElementInteractions": "warn",
+                "noSvgWithoutTitle": "warn",
+                "useAltText": "warn",
+                "useAnchorContent": "warn",
+                "useAriaActivedescendantWithTabindex": "warn",
+                "useAriaPropsForRole": "warn",
+                "useAriaPropsSupportedByRole": "warn",
+                "useButtonType": "warn",
+                "useFocusableInteractive": "warn",
+                "useHeadingContent": "warn",
+                "useHtmlLang": "warn",
+                "useIframeTitle": "warn",
+                "useKeyWithClickEvents": "warn",
+                "useKeyWithMouseEvents": "warn",
+                "useMediaCaption": "warn",
+                "useValidAnchor": "warn",
+                "useValidAriaProps": "warn",
+                "useValidAriaRole": "warn",
+                "useValidAriaValues": "warn",
+                "useValidLang": "warn"
+            }
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "single",
+            "jsxQuoteStyle": "double",
+            "semicolons": "always",
+            "trailingCommas": "all"
+        }
+    },
+    "css": {
+        "parser": {
+            "cssModules": false,
+            "tailwindDirectives": true
+        },
+        "formatter": {
+            "enabled": true,
+            "indentStyle": "space",
+            "indentWidth": 4
+        },
+        "linter": {
+            "enabled": true
+        }
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    }
+}

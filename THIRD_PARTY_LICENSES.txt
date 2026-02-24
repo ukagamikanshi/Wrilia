@@ -1,0 +1,82 @@
+Third-Party Licenses
+====================
+
+This software includes the following third-party packages.
+Most dependencies are licensed under MIT or ISC.
+The following packages require specific attribution:
+
+
+------------------------------------------------------------------------
+Dexie
+------------------------------------------------------------------------
+License: Apache-2.0
+https://github.com/dexie/Dexie.js
+
+Copyright (c) 2014-2024 David Fahlander
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+------------------------------------------------------------------------
+Inter Variable Font (@fontsource-variable/inter)
+------------------------------------------------------------------------
+License: SIL Open Font License 1.1 (OFL-1.1)
+https://github.com/rsms/inter
+
+Copyright (c) 2016-2024 The Inter Project Authors
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+https://openfontlicense.org/
+
+
+------------------------------------------------------------------------
+Noto Sans JP (@fontsource/noto-sans-jp)
+------------------------------------------------------------------------
+License: SIL Open Font License 1.1 (OFL-1.1)
+https://github.com/googlefonts/noto-cjk
+
+Copyright (c) Google LLC
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+https://openfontlicense.org/
+
+
+------------------------------------------------------------------------
+Noto Serif JP (@fontsource/noto-serif-jp)
+------------------------------------------------------------------------
+License: SIL Open Font License 1.1 (OFL-1.1)
+https://github.com/googlefonts/noto-cjk
+
+Copyright (c) Google LLC
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+https://openfontlicense.org/
+
+
+------------------------------------------------------------------------
+Other dependencies
+------------------------------------------------------------------------
+The following packages are licensed under MIT or ISC:
+
+  react, react-dom          MIT  https://github.com/facebook/react
+  react-router-dom          MIT  https://github.com/remix-run/react-router
+  zustand                   MIT  https://github.com/pmndrs/zustand
+  @xyflow/react             MIT  https://github.com/xyflow/xyflow
+  @dnd-kit/core             MIT  https://github.com/clauderic/dnd-kit
+  @dnd-kit/sortable         MIT  https://github.com/clauderic/dnd-kit
+  @dnd-kit/utilities        MIT  https://github.com/clauderic/dnd-kit
+  lucide-react              ISC  https://github.com/lucide-icons/lucide
+  nanoid                    MIT  https://github.com/ai/nanoid
+  html-to-image             MIT  https://github.com/bubkoo/html-to-image
+  encoding-japanese         MIT  https://github.com/nicktindall/encoding-japanese
+  d3-*                      ISC/BSD-3-Clause  https://github.com/d3

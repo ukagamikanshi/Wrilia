@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wrilia 取扱説明書</title>
+<style>
+/* ===== リセット・基本 ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent:      #475569;
+  --accent-soft: #334155;
+  --accent-bg:   #f1f5f9;
+  --ok:          #15803d;
+  --ok-bg:       #f0fdf4;
+  --warn:        #b45309;
+  --warn-bg:     #fffbeb;
+  --info:        #1d4ed8;
+  --info-bg:     #eff6ff;
+  --text:        #0f172a;
+  --text-sub:    #475569;
+  --text-muted:  #94a3b8;
+  --border:      #e2e8f0;
+  --bg:          #ffffff;
+  --bg-alt:      #f8fafc;
+  --bg-card:     #f1f5f9;
+  --code-bg:     #f1f5f9;
+  --sidebar-w:   260px;
+  --header-h:    56px;
+  --radius:      8px;
+  --shadow:      0 1px 4px rgba(0,0,0,.08);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family:
+    "Hiragino Kaku Gothic ProN", "Hiragino Sans",
+    "Noto Sans JP", Meiryo, "Yu Gothic UI", "MS PGothic",
+    -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.8;
+}
+
+/* ===== ヘッダー ===== */
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.site-header .logo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+.site-header .tagline {
+  font-size: .8rem;
+  opacity: .8;
+  border-left: 1px solid rgba(255,255,255,.4);
+  padding-left: 12px;
+  line-height: 1.4;
+}
+
+/* ===== レイアウト ===== */
+.layout {
+  display: flex;
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+}
+
+/* ===== サイドバー（目次） ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg-alt);
+  border-right: 1px solid var(--border);
+  padding: 24px 0 40px;
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+}
+.sidebar-title {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 0 20px 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.toc-list { list-style: none; }
+.toc-list li a {
+  display: block;
+  padding: 6px 20px;
+  font-size: .85rem;
+  color: var(--text-sub);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all .15s;
+  line-height: 1.5;
+}
+.toc-list li a:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-left-color: var(--accent);
+}
+.toc-list li.active > a {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+.toc-list .toc-sub a {
+  padding-left: 32px;
+  font-size: .8rem;
+}
+
+/* ===== メインコンテンツ ===== */
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 48px clamp(20px, 5vw, 72px) 80px;
+  max-width: 900px;
+}
+
+/* ===== ヒーローバナー ===== */
+.hero {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 32px 36px;
+  margin-bottom: 48px;
+  box-shadow: 0 4px 20px rgba(71,85,105,.3);
+}
+.hero h1 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: .02em;
+}
+.hero p {
+  font-size: .95rem;
+  opacity: .9;
+  line-height: 1.8;
+}
+.hero .badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.badge {
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 100px;
+  padding: 3px 12px;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+/* ===== セクション ===== */
+.section {
+  margin-bottom: 64px;
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+.section-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.section-title .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: .85rem;
+  font-weight: 700;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+.subsection {
+  margin-bottom: 32px;
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+.subsection-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+}
+
+/* ===== テキスト装飾 ===== */
+p { margin-bottom: 14px; }
+strong { font-weight: 700; }
+em { font-style: normal; color: var(--accent); font-weight: 600; }
+
+/* ===== リスト ===== */
+ul, ol {
+  padding-left: 1.5em;
+  margin-bottom: 14px;
+}
+li { margin-bottom: 6px; line-height: 1.75; }
+li strong { color: var(--text); }
+
+/* ===== チェックリスト ===== */
+.check-list { list-style: none; padding-left: 0; }
+.check-list li {
+  padding-left: 1.8em;
+  position: relative;
+  margin-bottom: 8px;
+}
+.check-list li::before {
+  content: "✅";
+  position: absolute;
+  left: 0;
+  font-size: .9em;
+}
+
+/* ===== テーブル ===== */
+.table-wrap { overflow-x: auto; margin-bottom: 20px; -webkit-overflow-scrolling: touch; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+  min-width: 400px;
+}
+thead {
+  background: var(--accent);
+  color: #fff;
+}
+thead th {
+  padding: 10px 14px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+tbody tr:hover { background: var(--accent-bg); }
+tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+/* ===== コードブロック ===== */
+code {
+  font-family: "Consolas", "SFMono-Regular", "Menlo", "Courier New", monospace;
+  font-size: .85em;
+  background: var(--code-bg);
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  font-family: "Consolas", "SFMono-Regular", "Menlo", "Courier New", monospace;
+  font-size: .85rem;
+  line-height: 1.7;
+  -webkit-overflow-scrolling: touch;
+}
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+}
+
+/* ===== 注意・ヒントボックス ===== */
+.box {
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border-left: 4px solid;
+  font-size: .92rem;
+  line-height: 1.75;
+}
+.box-warn  { background: var(--warn-bg);  border-color: var(--warn);  color: #78350f; }
+.box-ok    { background: var(--ok-bg);    border-color: var(--ok);    color: #14532d; }
+.box-info  { background: var(--info-bg);  border-color: var(--info);  color: #1e3a8a; }
+.box-tip   { background: var(--accent-bg);border-color: var(--accent);color: var(--accent-soft); }
+.box .box-icon { font-size: 1.1em; margin-right: 4px; }
+.box p:last-child { margin-bottom: 0; }
+
+/* ===== レイアウト図 ===== */
+.layout-diagram {
+  background: #1e293b;
+  color: #94a3b8;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  font-family: "Consolas", "SFMono-Regular", "Menlo", "Courier New", monospace;
+  font-size: .83rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+.layout-diagram .hl { color: #7dd3fc; }
+.layout-diagram .hl2 { color: #86efac; }
+.layout-diagram .hl3 { color: #fbbf24; }
+
+/* ===== 手順 ===== */
+.steps { counter-reset: step; list-style: none; padding-left: 0; }
+.steps li {
+  counter-increment: step;
+  padding-left: 44px;
+  position: relative;
+  margin-bottom: 14px;
+  line-height: 1.75;
+}
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ===== 機能カード群 ===== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.feature-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  transition: box-shadow .15s;
+}
+.feature-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.feature-card .icon { font-size: 1.4rem; margin-bottom: 6px; }
+.feature-card .label { font-weight: 700; font-size: .92rem; margin-bottom: 4px; }
+.feature-card .desc  { font-size: .82rem; color: var(--text-sub); line-height: 1.5; }
+
+/* ===== FAQ ===== */
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.faq-q {
+  background: var(--bg-alt);
+  padding: 14px 18px;
+  font-weight: 700;
+  color: var(--accent);
+  font-size: .95rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.faq-q::before { content: "Q"; background: var(--accent); color: #fff; border-radius: 4px; padding: 0 6px; font-size: .78rem; flex-shrink: 0; margin-top: 2px; }
+.faq-a {
+  padding: 14px 18px;
+  font-size: .92rem;
+  color: var(--text-sub);
+  line-height: 1.8;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.faq-a::before { content: "A"; background: var(--ok); color: #fff; border-radius: 4px; padding: 0 6px; font-size: .78rem; flex-shrink: 0; margin-top: 2px; }
+.faq-a p { margin: 0; }
+
+/* ===== ブラウザ対応表 ===== */
+.ok-mark   { color: var(--ok);   font-weight: 700; }
+.warn-mark { color: var(--warn); font-weight: 700; }
+
+/* ===== 保存・書き出しカード ===== */
+.save-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.save-card-head {
+  background: var(--bg-card);
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: .95rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.save-card-head .tag {
+  background: var(--accent);
+  color: #fff;
+  font-size: .7rem;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-weight: 600;
+}
+.save-card-body { padding: 16px 18px; }
+.save-card-body p:last-child { margin-bottom: 0; }
+
+/* ===== フッター ===== */
+.site-footer {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-muted);
+  font-size: .8rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+  line-height: 2;
+}
+
+/* ===== divider ===== */
+hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+/* ===== 印刷 ===== */
+@media print {
+  .site-header, .sidebar { display: none; }
+  .main { padding: 0; max-width: 100%; }
+  .layout { display: block; margin-top: 0; }
+  .hero { background: #475569 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  pre { white-space: pre-wrap; }
+  .faq-item, .save-card { break-inside: avoid; }
+}
+
+/* ===== スクロールバー（Webkit） ===== */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ===== 3大特徴ハイライト ===== */
+.highlight-features {
+  margin-top: 32px;
+  border-top: 2px solid var(--accent);
+  padding-top: 24px;
+}
+.highlight-features .hf-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 16px;
+  letter-spacing: .03em;
+}
+.hf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hf-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--accent-bg);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+.hf-num {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1.2;
+  min-width: 28px;
+  flex-shrink: 0;
+}
+.hf-body strong {
+  display: block;
+  font-size: .95rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.hf-body p {
+  font-size: .88rem;
+  color: var(--text-sub);
+  line-height: 1.7;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header class="site-header">
+  <div class="logo">Wrilia</div>
+  <div class="tagline">ブラウザで動く日本語小説執筆ツール<br>取扱説明書</div>
+</header>
+
+<div class="layout">
+
+  <!-- サイドバー（目次） -->
+  <nav class="sidebar" aria-label="目次">
+    <div class="sidebar-title">目次</div>
+    <ul class="toc-list" id="toc">
+      <li><a href="#s1">1. Wriliaとは？</a></li>
+      <li><a href="#s2">2. 安全性について</a></li>
+      <li><a href="#s3">3. 動作環境</a></li>
+      <li><a href="#s4">4. 使い始め方</a></li>
+      <li class="toc-sub"><a href="#s4-1">　新しい作品を始める</a></li>
+      <li class="toc-sub"><a href="#s4-2">　ファイルから再開する</a></li>
+      <li class="toc-sub"><a href="#s4-3">　テキストを取り込む</a></li>
+      <li><a href="#s5">5. 画面の見方</a></li>
+      <li><a href="#s6">6. 小説を書く</a></li>
+      <li class="toc-sub"><a href="#s6-1">　章・話を作る</a></li>
+      <li class="toc-sub"><a href="#s6-2">　本文を書く</a></li>
+      <li class="toc-sub"><a href="#s6-3">　ルビ・傍点・記号</a></li>
+      <li class="toc-sub"><a href="#s6-4">　検索・置換</a></li>
+      <li class="toc-sub"><a href="#s6-5">　整形ツール</a></li>
+      <li class="toc-sub"><a href="#s6-6">　変数機能</a></li>
+      <li class="toc-sub"><a href="#s6-7">　プレビュー</a></li>
+      <li><a href="#s7">7. プロット管理</a></li>
+      <li><a href="#s8">8. 人物相関図</a></li>
+      <li><a href="#s9">9. 地図</a></li>
+      <li><a href="#s10">10. 設定管理</a></li>
+      <li><a href="#s11">11. 保存・書き出し</a></li>
+      <li><a href="#s12">12. バックアップ</a></li>
+      <li><a href="#s13">13. よくある質問</a></li>
+    </ul>
+  </nav>
+
+  <!-- メインコンテンツ -->
+  <main class="main">
+
+    <!-- ヒーロー -->
+    <div class="hero">
+      <h1>Wrilia（ライリア）取扱説明書</h1>
+      <p>ブラウザだけで動く、無料の日本語小説執筆ツールです。<br>
+         インストール不要・アカウント登録不要・月額料金なし。</p>
+      <div class="badges">
+        <span class="badge">📴 完全オフライン動作</span>
+        <span class="badge">🔒 データは外部に出ない</span>
+        <span class="badge">💰 完全無料</span>
+        <span class="badge">📦 インストール不要</span>
+      </div>
+    </div>
+
+    <!-- 1. Wriliaとは -->
+    <section class="section" id="s1">
+      <h2 class="section-title"><span class="num">1</span>Wriliaとは？</h2>
+      <p>Wrilia（ライリア）は、<strong>ブラウザで動く日本語小説執筆ツール</strong>です。</p>
+      <p>普通の小説執筆ソフトのように文章を書けるだけでなく、プロット管理・人物相関図・地図・世界観設定メモなど、創作活動に必要な機能がひとつにまとまっています。</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="icon">✍️</div>
+          <div class="label">本文を書く</div>
+          <div class="desc">章・話・段落単位で管理。リアルタイムプレビュー付き</div>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📋</div>
+          <div class="label">プロットを組む</div>
+          <div class="desc">起承転結などのフェーズ別にストーリーを整理</div>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🕸️</div>
+          <div class="label">人物相関図を描く</div>
+          <div class="desc">キャラクターの関係性をビジュアルで管理</div>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🗺️</div>
+          <div class="label">地図を作る</div>
+          <div class="desc">舞台となる場所・地名を図で管理</div>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📖</div>
+          <div class="label">設定をメモする</div>
+          <div class="desc">世界観・用語集・魔法体系などを自由に整理</div>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📄</div>
+          <div class="label">書き出す</div>
+          <div class="desc">完成した本文をテキストファイルとして保存</div>
+        </div>
+      </div>
+
+      <div class="highlight-features">
+        <div class="hf-title">◆ このアプリ最大の3つの特徴</div>
+        <div class="hf-list">
+          <div class="hf-item">
+            <div class="hf-num">1</div>
+            <div class="hf-body">
+              <strong>段落をカードとして管理し、自由に並べ替えられる</strong>
+              <p>Wriliaでは文章を「段落（テキストブロック）」単位でカードのように管理します。書いた段落はマウスのドラッグ＆ドロップで自由に順序を入れ替えられるため、執筆中に前後の違和感を覚えても直感的に修正が行えます。</p>
+            </div>
+          </div>
+          <div class="hf-item">
+            <div class="hf-num">2</div>
+            <div class="hf-body">
+              <strong>人物名・地名を変数で挿入できる</strong>
+              <p><code>{{変数名}}</code> という記法で人物名・地名などを本文中に埋め込めます。書き出し時に実際の名前に置き換えられるため、例えば<code>{{主人公}}</code> という変数を入れておけば、後から主人公の名前を変更しても書き直す必要はありません。変数の挿入はボタンで簡単に行えます。</p>
+            </div>
+          </div>
+          <div class="hf-item">
+            <div class="hf-num">3</div>
+            <div class="hf-body">
+              <strong>執筆に役立つ便利ツールが充実</strong>
+              <p>ルビ・傍点・三点リーダー・ダッシュ・「」の挿入や、検索と置換、自動インデント、会話文の前後にだけ空白行を挿入、会話文前後の空白行だけを削除、各行間に空白行挿入、全空白行の一括削除など、執筆作業を助けるツールが標準搭載されています。さらに会話文のカードだけ自動的に色が変わるので、地の文と会話文が直感的に見分けられます。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 安全性 -->
+    <section class="section" id="s2">
+      <h2 class="section-title"><span class="num">2</span>安全性について（必ずお読みください）</h2>
+
+      <div class="subsection">
+        <h3 class="subsection-title">あなたの作品データは、絶対に外部に出ません</h3>
+        <p>Wriliaには<strong>サーバーが存在しません</strong>。入力したすべての文章・キャラクター設定・プロット・メモは、<strong>あなたが使っているブラウザの中だけ</strong>に保存されます。</p>
+
+        <div class="layout-diagram">
+<span class="hl">あなたのパソコン</span><br>
+  　└─ <span class="hl2">ブラウザ（Chromeなど）</span><br> 
+       　　└─ <span class="hl3">ブラウザの内部保存場所 ← ここだけに保存される</span>
+<br>
+<span style="color:#f87171;">外部サーバー ← データは一切届かない ✗</span>
+        </div>
+
+        <p>つまり：</p>
+        <ul class="check-list">
+          <li>作品の内容が外部に送信されることは<strong>一切ない</strong></li>
+          <li>運営者・開発者であっても、あなたの作品を見ることは<strong>できない</strong></li>
+          <li>AIの学習データとして使われることも<strong>ない</strong></li>
+          <li>アカウント登録・ログインは<strong>不要</strong></li>
+          <li>アプリのインストールは<strong>不要</strong>（ブラウザで開くだけ）</li>
+          <li>月額料金・課金は<strong>一切ない</strong></li>
+        </ul>
+      </div>
+
+      <div class="box box-warn">
+        <p><span class="box-icon">⚠️</span><strong>ひとつだけ注意点があります</strong></p>
+        <p>「画面の再読み込み」「ブラウザの閲覧データを削除」「キャッシュのクリア」などの操作をすると、Wriliaに保存していたデータも一緒に消えてしまいます。</p>
+        <p><strong>必ず定期的に「JSON保存」でバックアップを取ってください。</strong>（詳しくは <a href="#s11" style="color:var(--warn);">保存・書き出し方法</a> をご覧ください）</p>
+      </div>
+    </section>
+
+    <!-- 3. 動作環境 -->
+    <section class="section" id="s3">
+      <h2 class="section-title"><span class="num">3</span>動作環境</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>ブラウザ・環境</th><th>対応状況</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Google Chrome（最新版）</strong></td>
+              <td><span class="ok-mark">✅ 推奨</span>　すべての機能が使えます</td>
+            </tr>
+            <tr>
+              <td><strong>Microsoft Edge（最新版）</strong></td>
+              <td><span class="ok-mark">✅ 推奨</span>　すべての機能が使えます</td>
+            </tr>
+            <tr>
+              <td>Firefox</td>
+              <td><span class="warn-mark">⚠️ 一部制限あり</span>　動作しますが、自動保存機能は使えません</td>
+            </tr>
+            <tr>
+              <td>Safari</td>
+              <td><span class="warn-mark">⚠️ 一部制限あり</span>　一部の機能が動かない場合があります</td>
+            </tr>
+            <tr>
+              <td>スマートフォン・タブレット</td>
+              <td><span class="warn-mark">⚠️ 非推奨</span>　動作しますが、PC向けに設計されているため推奨しません</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box box-info">
+        <p><span class="box-icon">ℹ️</span><strong>インターネット接続について</strong></p>
+        <p>最初にページを開くときだけ接続が必要です。一度開いてしまえば、以降はオフラインでも使えます。</p>
+    </section>
+
+    <!-- 4. 使い始め方 -->
+    <section class="section" id="s4">
+      <h2 class="section-title"><span class="num">4</span>使い始め方</h2>
+
+      <div class="subsection" id="s4-1">
+        <h3 class="subsection-title">新しい作品を始める</h3>
+        <ol class="steps">
+          <li>左端のサイドバーにある「<strong>作品を開く</strong>」ボタンをクリックします</li>
+          <li>開いたウィンドウで「<strong>新しい作品を作成</strong>」の欄に作品名を入力します</li>
+          <li>「<strong>作成</strong>」ボタンをクリックすると、新しい作品が開きます</li>
+          <li>自動保存の設定ウィンドウが表示されます。設定するか、後で行う場合は閉じます</li>
+        </ol>
+      </div>
+
+      <div class="subsection" id="s4-2">
+        <h3 class="subsection-title">保存済みのファイルから再開する</h3>
+        <p>以前にJSON形式で保存したファイルがある場合：</p>
+        <ol class="steps">
+          <li>左端のサイドバーにある「<strong>作品を開く</strong>」ボタンをクリックします</li>
+          <li>「<strong>既存の作品を開く</strong>」の欄にある「JSON ファイルを選択」をクリックします</li>
+          <li>パソコンの中から保存しておいたJSONファイルを選びます</li>
+          <li>作品が読み込まれて、前回の続きから使えます</li>
+        </ol>
+        <div class="box box-warn">
+          <p><span class="box-icon">⚠️</span>現在別の作品を開いている場合、新しい作品を開くと<strong>前の作品のデータが消えます</strong>。必ず先にJSONで保存してから切り替えてください。</p>
+        </div>
+      </div>
+
+      <div class="subsection" id="s4-3">
+        <h3 class="subsection-title">テキストファイル（.txt）を取り込む</h3>
+        <p>すでにテキストエディタで書いた原稿がある場合：</p>
+        <ol class="steps">
+          <li>作品を開いた状態で、左端のサイドバーにある「<strong>テキスト取り込み</strong>」ボタンをクリックします</li>
+          <li>取り込みたい <code>.txt</code> ファイルを選びます（複数選択可能）</li>
+          <li>ファイル名が話のタイトルになり、テキストが本文として読み込まれます</li>
+        </ol>
+        <div class="box box-info">
+          <p><span class="box-icon">ℹ️</span>Shift_JIS（古いWindows形式）のファイルも自動的に正しく読み込まれます。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 画面の見方 -->
+    <section class="section" id="s5">
+      <h2 class="section-title"><span class="num">5</span>画面の見方</h2>
+
+      <div class="layout-diagram" style="padding: 0; background: transparent;">
+        <div style="display: flex; background: #1e293b; border: 1px solid #64748b; border-radius: var(--radius); min-height: 240px;">
+          <div style="width: 130px; border-right: 1px dashed #64748b; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;">
+            <div>
+              <div style="margin-bottom: 12px;">
+                <span class="hl" style="font-weight: bold;">サイドバー</span><br>
+                （ナビ）
+              </div>
+              <div style="line-height: 1.8;">
+                ・小説<br>
+                ・プロット<br>
+                ・人物<br>
+                ・地図<br>
+                ・設定
+              </div>
+            </div>
+            <div>
+              [保存]<br>
+              [書出し]
+            </div>
+          </div>
+          <div style="flex: 1; padding: 20px; display: flex; flex-direction: column;">
+            <div style="text-align: center; color: #cbd5e1; margin-bottom: 24px;">メインコンテンツ</div>
+            <div style="display: flex; align-items: center; padding-left: 10%; flex: 1;">
+              ← 選んだ機能の画面が表示される
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p><strong>サイドバー</strong>（左端の細いバー）はマウスをのせると広がり、各機能へのリンクが表示されます。「小説執筆」「プロット」「人物相関図」「地図」「設定管理」の5機能に切り替えられます。下部に保存・書き出しのボタンがあります。</p>
+    </section>
+
+    <!-- 6. 小説を書く -->
+    <section class="section" id="s6">
+      <h2 class="section-title"><span class="num">6</span>小説を書く（執筆モード）</h2>
+      <p>「小説執筆」を選ぶと、画面が3列に分かれます。各列の境界線をドラッグすると、幅を自由に調整できます。</p>
+
+      <div class="layout-diagram" style="padding: 0; background: transparent;">
+        <div style="display: flex; background: #1e293b; border: 1px solid #64748b; border-radius: var(--radius); text-align: center; align-items: center; min-height: 100px;">
+          <div style="flex: 1; border-right: 1px dashed #64748b; padding: 16px 8px;">
+            <span class="hl" style="font-weight: bold; line-height: 1.4; display: inline-block;">章・話の<br>一覧ツリー</span>
+          </div>
+          <div style="flex: 2; border-right: 1px dashed #64748b; padding: 16px 8px;">
+            <span class="hl2" style="font-weight: bold; font-size: 1.05em;">テキスト入力エリア</span><br>
+            <span style="color: #94a3b8; font-size: 0.85em;">（執筆画面）</span>
+          </div>
+          <div style="flex: 1.2; padding: 16px 8px;">
+            <span class="hl3" style="font-weight: bold; font-size: 1.05em;">プレビュー</span><br>
+            <span style="color: #94a3b8; font-size: 0.85em;">（仕上がり）</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6-1 -->
+      <div class="subsection" id="s6-1">
+        <h3 class="subsection-title">6-1. 章・話を作る</h3>
+        <p>左の「章・話の一覧ツリー」で構成を管理します。3種類の単位で管理できます。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>色分け</th><th>名前</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td>　<span style="color: #f97316;">■</span></td><td><strong>巻</strong></td><td>複数の「章」をまとめるフォルダ</td></tr>
+              <tr><td>　<span style="color: #3b82f6;">■</span></td><td><strong>章</strong></td><td>複数の「話」をまとめるフォルダ</td></tr>
+              <tr><td>　<span style="color: #22c55e;">■</span></td><td><strong>話</strong></td><td>実際に本文を書く単位</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>操作方法：</strong></p>
+        <ul>
+          <li>一覧上部の「巻」「章」「話」ボタンで新しいものを追加できます</li>
+          <li>タイトルを<strong>ダブルクリック</strong>すると名前を変更できます</li>
+          <li>左端の「⠿」アイコンを<strong>ドラッグ</strong>すると順番を入れ替えられます</li>
+          <li>右側に現れるアイコンで「複製」「削除」ができます</li>
+          <li>「話」をクリックすると、中央の執筆エリアに本文が表示されます</li>
+        </ul>
+        <div class="box box-tip">
+          <p><span class="box-icon">💡</span><strong>ヒント：</strong>「話」だけを使って管理しても問題ありません。巻・章は長編小説や章立てが必要な場合に使ってください。</p>
+        </div>
+      </div>
+
+      <!-- 6-2 -->
+      <div class="subsection" id="s6-2">
+        <h3 class="subsection-title">6-2. 本文を書く</h3>
+        <p>「話」を選ぶと、中央のエリアに本文を書けるようになります。</p>
+        <ul>
+          <li>テキストボックスに文章を入力します</li>
+          <li><code>Enter</code> キーを押すと、新しい段落（ブロック）が追加されます</li>
+          <li>段落の左端にある「⠿」アイコンをドラッグすると、段落の順番を入れ替えられます</li>
+          <li>各段落の右側に表示される「コピー」「削除」ボタンで段落を操作できます</li>
+        </ul>
+        <p><strong>会話文の識別：</strong>　「　で始まって　」　で終わる行は、会話文として自動的に背景色が変わります。地の文と会話文を視覚的に区別して確認できます。</p>
+        <p><strong>文字数カウント：</strong>ツールバーの右端に、現在の「話」の文字数がリアルタイムで表示されます。</p>
+        <p><strong>元に戻す・やり直し：</strong></p>
+        <ul>
+          <li><code>Ctrl + Z</code>（元に戻す）</li>
+          <li><code>Ctrl + Y</code>（やり直し）</li>
+          <li>ツールバーの「↩」「↪」ボタンでも操作できます</li>
+        </ul>
+      </div>
+
+      <!-- 6-3 -->
+      <div class="subsection" id="s6-3">
+        <h3 class="subsection-title">6-3. ルビ・傍点・記号を入れる</h3>
+        <p>ツールバーの「記法:」エリアにあるボタンで特殊な書式を挿入できます。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ボタン</th><th>挿入される記法</th><th>プレビューでの表示</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ルビ</strong></td><td><code>|漢字《かんじ》</code></td><td>漢字の上にかなが表示される</td></tr>
+              <tr><td><strong>傍点</strong></td><td><code>|文《・》|字《・》</code></td><td>文字の上に点が付く（書き出し時に《《文字》》形式に変換も可能）</td></tr>
+              <tr><td><strong>……</strong></td><td><code>……</code></td><td>三点リーダー</td></tr>
+              <tr><td><strong>――</strong></td><td><code>――</code></td><td>ダッシュ</td></tr>
+              <tr><td><strong>「」</strong></td><td><code>「」</code></td><td>会話文括弧（カーソルは括弧の中に移動）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>ルビ・傍点の挿入方法：</strong></p>
+        <ol class="steps">
+          <li>書式を付けたいテキストを<strong>選択</strong>（ドラッグ）します</li>
+          <li>「ルビ」または「傍点」ボタンをクリックします</li>
+          <li>ダイアログが開くので、ルビ文字を入力して「挿入」を押します</li>
+        </ol>
+      </div>
+
+      <!-- 6-4 -->
+      <div class="subsection" id="s6-4">
+        <h3 class="subsection-title">6-4. 検索・置換</h3>
+        <p>固有名詞を変更したいときなどに便利です。</p>
+        <ol class="steps">
+          <li>ツールバーの「ツール」ボタンをクリックして展開します</li>
+          <li>「検索...」欄に探したい言葉、「置換...」欄に新しい言葉を入力します</li>
+          <li>「一括変換」ボタンを押すと、現在の「話」全体で一括置換されます</li>
+        </ol>
+      </div>
+
+      <!-- 6-5 -->
+      <div class="subsection" id="s6-5">
+        <h3 class="subsection-title">6-5. 整形ツール</h3>
+        <p>ツールバーの「ツール」ボタンを展開すると、以下の整形機能が使えます。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ボタン名</th><th>何をするか</th></tr></thead>
+            <tbody>
+              <tr><td><strong>会話文前後空行挿入</strong></td><td>会話文（「…」）カードの前後に空白行を自動で追加する</td></tr>
+              <tr><td><strong>会話文空行削除</strong></td><td>会話文の前後にある空白行をまとめて削除する</td></tr>
+              <tr><td><strong>自動字下げ</strong></td><td>すべてのカードの先頭に全角スペースを挿入する（テキストとしてのスペース挿入）</td></tr>
+              <tr><td><strong>字下げ解除</strong></td><td>先頭の全角スペースをすべて削除する</td></tr>
+              <tr><td><strong>カード間空白行挿入</strong></td><td>すべてのカードの間に空白行を追加する</td></tr>
+              <tr><td><strong>空白行をすべて削除</strong></td><td>空白のカードをすべて削除する</td></tr>
+              <tr><td><strong>会話文をすべて削除</strong></td><td>会話文（「…」）のカードをすべて削除する</td></tr>
+              <tr><td><strong>地の文をすべて削除</strong></td><td>会話文以外のカードをすべて削除する</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 6-6 -->
+      <div class="subsection" id="s6-6">
+        <h3 class="subsection-title">6-6. 変数機能（名前を後から一括変更したいとき）</h3>
+        <p>人物名や場所名を「変数」として登録しておくと、書き出し時に自動で変換されます。</p>
+        <ol class="steps">
+          <li>人物相関図（または地図）のページで、人物（または場所）に「変数名」を設定します<br>（例：変数名 → <code>主人公</code>）</li>
+          <li>本文中に <code>{{主人公}}</code> と入力します</li>
+          <li>テキスト書き出し時に、<code>{{主人公}}</code> が登録した人物名に自動で置き換わります</li>
+          <p>※変数名は、執筆画面上部ツール内にあるボタンをクリックするだけで簡単に挿入できます。</p>
+        </ol>
+        <div class="box box-tip">
+          <p><span class="box-icon">💡</span><strong>活用例：</strong>主人公の名前が「田中太郎」から「山田太郎」に変わっても、変数名を使っていれば本文を一切修正する必要がありません。</p>
+        </div>
+      </div>
+
+      <!-- 6-7 -->
+      <div class="subsection" id="s6-7">
+        <h3 class="subsection-title">6-7. プレビューについて</h3>
+        <p>右側のプレビューエリアに、書いた内容が整形されてリアルタイム表示されます。</p>
+        <ul>
+          <li>ルビ（<code>|漢字《かんじ》</code>）が実際にルビ付きで表示されます</li>
+          <li>傍点（<code>|文《・》|字《・》</code>）が実際に点付きで表示されます</li>
+          <li>変数（<code>{{varName}}</code>）が実際の名前に置き換えて表示されます</li>
+          <li>執筆エリアをスクロールすると、プレビューも連動してスクロールします</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 7. プロット -->
+    <section class="section" id="s7">
+      <h2 class="section-title"><span class="num">7</span>プロットを管理する</h2>
+      <p>「プロット」ページでは、物語の流れをカード形式で整理できます。</p>
+
+      <div class="subsection">
+        <h3 class="subsection-title">プロットカードの作り方</h3>
+        <ol class="steps">
+          <li>「プロット追加」ボタンをクリックすると、新しいカードが追加されます</li>
+          <li>カードに内容を入力します：<strong>フェーズ</strong>（起・承・転・結などの段階）、<strong>タイトル</strong>、<strong>詳細</strong>（プロットの内容・展開のメモ）</li>
+          <li>カードの左端の「⠿」をドラッグして順番を入れ替えられます</li>
+        </ol>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">フェーズをカスタマイズする</h3>
+        <p>右側の「プロットフェーズ設定」パネルで、フェーズの名前と色を変更できます。</p>
+        <ul>
+          <li>デフォルトは「起・承・転・結」ですが、自由に変更できます（例：「序章・展開・クライマックス・結末」など）</li>
+          <li>各フェーズに好きな色を設定できます（10色から選択）</li>
+          <li>「フェーズを追加」で増やすこともできます</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">章・話との紐づけ</h3>
+        <p>各プロットカードの下部にある「紐づけ済み：〇件」をクリックすると、そのプロットがどの章・話に対応するかを設定できます。</p>
+      </div>
+    </section>
+
+    <!-- 8. 人物相関図 -->
+    <section class="section" id="s8">
+      <h2 class="section-title"><span class="num">8</span>人物相関図を作る</h2>
+      <p>「人物相関図」ページでは、キャラクターの関係性を図で管理できます。</p>
+
+      <div class="subsection">
+        <h3 class="subsection-title">人物を登録する</h3>
+        <ol class="steps">
+          <li>「＋ 人物追加」ボタンをクリックします</li>
+          <li>「新キャラクター」という名前で追加されます</li>
+          <li>人物をクリックすると詳細パネルが開きます</li>
+        </ol>
+        <p>詳細パネルで設定できる内容：</p>
+        <ul>
+          <li><strong>名前・性別</strong></li>
+          <li><strong>テーマカラー</strong>（相関図上のノードの色。10色から選択）</li>
+          <li><strong>顔写真・イラスト</strong>（画像ファイルをアップロードできます）</li>
+          <li><strong>プロフィール</strong>（カスタム項目を自由に追加できます）</li>
+          <li><strong>詳細メモ</strong>（自由記述）</li>
+          <li><strong>変数名</strong>（本文中で <code>{{変数名}}</code> として使える名前）</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">相関図を作る</h3>
+        <p>右側のキャンバスに人物を配置して、関係を線で結びます。</p>
+        <p><strong>人物の配置：</strong>左のリストから人物を<strong>ドラッグ&amp;ドロップ</strong>してキャンバスに置きます。または「人物追加」ボタン・「人物追加モード」でクリックして追加できます。</p>
+        <p><strong>線（矢印）を引く：</strong></p>
+        <ol class="steps">
+          <li>ツールパレットから「矢印」または「線」ツールを選びます</li>
+          <li>人物ノードの端から別の人物ノードにドラッグします</li>
+          <li>線が引かれたら、線をクリックしてラベル（「親友」「ライバル」など）を入力できます</li>
+          <li>線の色・太さも変更できます</li>
+          <p>※人物ノードのフチをドラッグして線を出すこともできます。</p>
+        </ol>
+        <p><strong>その他の要素：</strong></p>
+        <ul>
+          <li><strong>テキストノード</strong>：フリーのテキストをキャンバスに配置できます</li>
+          <li><strong>矩形（グループ枠）</strong>：人物をグループで囲む枠を描けます</li>
+          <li><strong>記号（♥・👍・👎）</strong>：感情を表すアイコンを配置できます</li>
+        </ul>
+        <p><strong>操作のコツ：</strong></p>
+        <ul>
+          <li>マウスホイールで拡大・縮小</li>
+          <li>キャンバスをドラッグして移動</li>
+          <li>「自動整列」ボタンで人物を等間隔に並べ直せます</li>
+          <li>右下のミニマップで全体像を確認できます</li>
+          <li><code>Ctrl + Z</code> / <code>Ctrl + Y</code> で元に戻す・やり直し</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">複数の相関図を管理する</h3>
+        <p>物語の時系列に応じて、複数の相関図（パターン）を作れます。</p>
+        <ul>
+          <li>例：「物語開始時」「中盤」「終盤」のように3枚の相関図を作って切り替えられます</li>
+          <li>上部のドロップダウンでパターンを切り替えます</li>
+          <li>「＋」ボタンで新しいパターンを追加、「コピー」ボタンで複製できます</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 9. 地図 -->
+    <section class="section" id="s9">
+      <h2 class="section-title"><span class="num">9</span>地図を作る</h2>
+      <p>「地図」ページでは、舞台となる場所・地名を図で管理できます。人物相関図と同じ使い方で、人物の代わりに<strong>場所（ロケーション）</strong>をノードとして配置します。</p>
+
+      <div class="subsection">
+        <h3 class="subsection-title">場所の登録</h3>
+        <ul>
+          <li>左側のリストから「場所追加」ボタンで追加できます</li>
+          <li>各場所に「名前」「テーマカラー」「詳細メモ」「変数名」を設定できます</li>
+          <li>フォルダで場所を分類できます（例：「王国」フォルダの中に各都市を入れる）</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">地図を作る</h3>
+        <p>人物相関図と同じ操作で、場所ノードをキャンバスに配置して線で結びます。</p>
+        <ul>
+          <li>場所どうしを線でつなぎ、「東に2日の距離」などのラベルをつけられます</li>
+          <li>複数の地図パターンを作って切り替えられます（例：「大陸全体」「王都周辺」）</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 10. 設定管理 -->
+    <section class="section" id="s10">
+      <h2 class="section-title"><span class="num">10</span>世界観・設定をメモする（設定管理）</h2>
+      <p>「設定管理」ページでは、作品の世界観・ルール・用語などを整理できます。</p>
+
+      <div class="subsection">
+        <h3 class="subsection-title">カテゴリを作る</h3>
+        <ol class="steps">
+          <li>上部の入力欄にカテゴリ名を入力して「追加」を押します<br>（例：「魔法体系」「社会制度」「用語集」「武器・道具」）</li>
+          <li>カテゴリをクリックして展開し、「メモ追加」でメモを追加します</li>
+        </ol>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">メモを書く</h3>
+        <p>メモを選択すると右側に編集エリアが開きます。</p>
+        <ul>
+          <li><strong>タイトル</strong>：メモの見出し</li>
+          <li><strong>カスタムフィールド</strong>：「項目名」と「値」のペアを自由に追加できます<br>（例：「使用可能な人」→「魔法師のみ」、「威力」→「中程度」）</li>
+          <li><strong>メモ</strong>：自由にテキストを書けます</li>
+          <li>作成日・更新日が自動で記録されます</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 11. 保存・書き出し -->
+    <section class="section" id="s11">
+      <h2 class="section-title"><span class="num">11</span>保存・書き出し方法</h2>
+
+      <div class="save-card">
+        <div class="save-card-head">
+          💾 JSON保存（バックアップ用）<span class="tag">最重要</span>
+        </div>
+        <div class="save-card-body">
+          <p>作品データをまるごとJSONファイルとして保存します。本文・章構成・プロット・人物設定・地図・世界観メモ、すべてが1つのファイルに入ります。</p>
+          <ol class="steps">
+            <li>左のサイドバーにある「<strong>保存（JSON）</strong>」をクリックします</li>
+            <li>ブラウザのダイアログが開くので、保存場所とファイル名を決めて保存します</li>
+          </ol>
+          <div class="box box-ok" style="margin-bottom:0">
+            <p><span class="box-icon">✅</span>このファイルを「作品を開く」でWriliaに読み込めば、完全に復元できます。</p>
+            <p><span class="box-icon">✅</span>他のパソコンに持ち運ぶことも可能です。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-card">
+        <div class="save-card-head">
+          ⏱️ 自動保存<span class="tag">Chrome・Edgeのみ</span>
+        </div>
+        <div class="save-card-body">
+          <p>一定時間ごとに、指定したフォルダへ自動でJSONファイルを保存します。</p>
+          <ol class="steps">
+            <li>新しい作品を作成したときに設定ウィンドウが開きます<br>（後から設定する場合は、サイドバー下部の「自動保存：〇分」→「設定変更」をクリック）</li>
+            <li>保存間隔（1〜60分）と保存先フォルダを選びます</li>
+            <li>「設定」を押すと自動保存が開始されます</li>
+          </ol>
+          <div class="box box-warn" style="margin-bottom:0">
+            <p><span class="box-icon">⚠️</span>ブラウザのセキュリティ仕様により、長時間操作しないと許可を再確認されることがあります。FirefoxとSafariではこの機能を使えません（手動でJSONを保存してください）。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-card">
+        <div class="save-card-head">
+          📄 テキスト書き出し（.txt形式）
+        </div>
+        <div class="save-card-body">
+          <p>完成した本文をテキストファイルとして書き出します。サイドバーの「<strong>書き出し（TXT）</strong>」をクリックすると書き出しウィンドウが開きます。</p>
+          <p><strong>書き出す内容を選べます：</strong></p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>項目</th><th>内容</th></tr></thead>
+              <tbody>
+                <tr><td><strong>小説本文</strong></td><td>特定の章・話だけを選んで書き出せます</td></tr>
+                <tr><td><strong>プロット</strong></td><td>フェーズ・タイトル・詳細・紐づけ章</td></tr>
+                <tr><td><strong>設定・メモ</strong></td><td>世界観・設定のメモ全体</td></tr>
+                <tr><td><strong>人物詳細</strong></td><td>人物の名前・性別・プロフィール</td></tr>
+                <tr><td><strong>場所詳細</strong></td><td>場所の名前・詳細</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>オプション設定：</strong></p>
+          <ul>
+            <li><strong>文字コード</strong>：<code>UTF-8</code>（推奨・スマートフォン・最新のPC向け）または <code>Shift_JIS</code>（古いWindowsのソフト向け。小説投稿サイト等への投稿時に必要な場合）</li>
+            <li><strong>傍点の変換</strong>：<code>|文《・》|字《・》</code> を <code>《《文字》》</code> 形式に変換して書き出す</li>
+          </ul>
+          <div class="box box-tip" style="margin-bottom:0">
+            <p><span class="box-icon">💡</span>書き出したテキストの中で <code>{{変数名}}</code> はすべて実際の名前に置き換えられます。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-card">
+        <div class="save-card-head">
+          🖼️ 画像書き出し（相関図・地図）
+        </div>
+        <div class="save-card-body">
+          <p>人物相関図や地図をPNG画像・JPEG画像またはSVG形式で書き出せます。</p>
+          <ol class="steps">
+            <li>サイドバーの「<strong>書き出し（画像）</strong>」または「<strong>書き出し（SVG）</strong>」をクリックします</li>
+            <li>書き出したい相関図・地図のパターンを選んで書き出します</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. バックアップ -->
+    <section class="section" id="s12">
+      <h2 class="section-title"><span class="num">12</span>大切なお願い：バックアップについて</h2>
+
+      <div class="box box-warn">
+        <p><span class="box-icon">⚠️</span><strong>次の操作をすると、Wriliaのデータが消えます：</strong></p>
+        <ul style="margin:8px 0 0 1.5em;">
+          <li>ブラウザの「画面を再読み込み」</li>
+          <li>ブラウザの「閲覧データを削除」</li>
+          <li>ブラウザの「キャッシュをクリア」</li>
+          <li>ブラウザを閉じる</li>
+          <li>パソコンの再起動・初期化・OSの再インストール</li>
+          <li>別のブラウザへの切り替え（データは引き継がれません）</li>
+        </ul>
+      </div>
+
+      <p><strong>データを守るために：</strong></p>
+      <ol class="steps">
+        <li>執筆の節目ごとに「<strong>保存（JSON）</strong>」でファイルを作る</li>
+        <li>できれば自動保存を設定しておく（Chrome・Edgeのみ）</li>
+        <li>大切な原稿はUSBメモリや別のパソコンにも複製しておく</li>
+      </ol>
+    </section>
+
+    <!-- 13. FAQ -->
+    <section class="section" id="s13">
+      <h2 class="section-title"><span class="num">13</span>よくある質問・困ったときは</h2>
+
+      <div class="faq-item">
+        <div class="faq-q">昨日書いた文章が消えてしまった</div>
+        <div class="faq-a"><p>ブラウザの閲覧データを削除したか、別のブラウザを使ってしまった可能性があります。JSONバックアップがあれば「作品を開く」から復元できます。バックアップがない場合は残念ながら復元できません。今後は定期的にJSONを保存してください。</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">別のパソコンからでも使えますか？</div>
+        <div class="faq-a"><p>はい。使いたいパソコンでWriliaを開き、JSONファイルを読み込めば使えます。「作品を開く」→「JSON ファイルを選択」で読み込んでください。</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">スマートフォンからも使えますか？</div>
+        <div class="faq-a"><p>ブラウザで開けば動きますが、スマートフォン向けのデザインではないため操作しづらい場合があります。PCでの利用を推奨しています。</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">複数の作品を同時に管理できますか？</div>
+        <div class="faq-a"><p>1つのブラウザには1作品のみです。作品を切り替えるには、今の作品をJSON保存してから新しい作品を開いてください。</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">誤って章を削除してしまった</div>
+        <div class="faq-a"><p>削除した章を元に戻す機能はありません。定期的なJSONバックアップを取っておくことで、バックアップ時点まで戻せます。</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">テキスト書き出しをしたら文字化けした</div>
+        <div class="faq-a"><p>書き出し時の文字コード設定を確認してください。通常は「UTF-8（BOM付き）」が推奨ですが、投稿サイトや古いソフトでは「Shift_JIS」が必要な場合があります。</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">自動保存が動かない（Firefoxを使っている）</div>
+        <div class="faq-a"><p>自動保存はChromeとEdgeのみ対応しています。Firefoxをお使いの場合は、定期的に手動でJSONを保存してください。</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">相関図の人物が表示されなくなった</div>
+        <div class="faq-a"><p>人物を削除すると、相関図からも消えます。人物ツリーで人物が存在しているか確認してください。</p></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- フッター -->
+<footer class="site-footer">
+  <p>Wrilia は MIT ライセンスで公開されているオープンソースソフトウェアです。</p>
+  <p>ご意見・ご要望・バグ報告は GitHub の Issue でお知らせください。</p>
+</footer>
+
+<script>
+// 目次のアクティブセクション自動ハイライト
+(function () {
+  var sections = document.querySelectorAll('.section');
+  var links    = document.querySelectorAll('.toc-list a');
+  if (!sections.length || !links.length) return;
+
+  function onScroll() {
+    var headerH = 56 + 16;
+    var current = '';
+    sections.forEach(function (sec) {
+      if (sec.getBoundingClientRect().top <= headerH) {
+        current = sec.id;
+      }
+    });
+    links.forEach(function (a) {
+      var li = a.parentElement;
+      var href = a.getAttribute('href').replace('#', '');
+      li.classList.toggle('active', href === current);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>

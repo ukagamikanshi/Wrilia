@@ -1,0 +1,1335 @@
+@import "tailwindcss";
+
+/* ================================
+   Novel Writer - グローバルスタイル
+   ================================ */
+
+@theme {
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f8fafc;
+    --color-bg-tertiary: #f1f5f9;
+    --color-bg-card: #ffffff;
+    --color-bg-hover: #f1f5f9;
+    --color-bg-active: #e2e8f0;
+    --color-accent-primary: #475569;
+    /* Slate 600 */
+    --color-accent-secondary: #334155;
+    /* Slate 700 */
+    --color-accent-glow: #1e293b;
+    /* Slate 900 */
+    --color-text-primary: #0f172a;
+    /* Slate 950 */
+    --color-text-secondary: #475569;
+    /* Slate 600 */
+    --color-text-muted: #94a3b8;
+    /* Slate 400 */
+    --color-border: #e2e8f0;
+    /* Slate 200 */
+    --color-border-active: #475569;
+    /* Slate 600 */
+    --color-success: #16a34a;
+    /* Green 600 */
+    --color-warning: #d97706;
+    /* Amber 600 */
+    --color-danger: #dc2626;
+    /* Red 600 */
+    --color-dialogue-bg: #f1f5f9;
+    /* 薄いスレート (会話文背景) */
+    --color-dialogue-border: #cbd5e1;
+    /* Slate 300 */
+}
+
+@layer base {
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: "Noto Sans JP", "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
+
+/* ルビスタイル */
+ruby {
+    ruby-align: center;
+}
+
+ruby rt {
+    font-size: 0.5em;
+    color: var(--color-accent-secondary);
+}
+
+/* 傍点スタイル */
+.emphasis-dot {
+    text-emphasis: filled dot;
+    text-emphasis-position: over right;
+    -webkit-text-emphasis: filled dot;
+    -webkit-text-emphasis-position: over right;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.25s ease-out;
+}
+
+/* クリーンカード (Material Design Elevation 2) */
+.glass-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    box-shadow:
+        0 1px 2px 0 rgba(15, 23, 42, 0.08),
+        0 2px 6px 2px rgba(15, 23, 42, 0.06);
+}
+
+/* フォーカスリング */
+.glow-border {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+}
+
+/* React Flowカスタム */
+.react-flow__background {
+    background-color: var(--color-bg-primary) !important;
+}
+
+.react-flow__minimap {
+    background-color: var(--color-bg-secondary) !important;
+}
+
+/* ===================================
+   人物相関図スタイル
+   =================================== */
+
+/* Tool Palette */
+.relation-tool-palette {
+    width: 130px;
+    min-width: 130px;
+    background: var(--color-bg-card);
+    border-right: 1px solid var(--color-border);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+.relation-tool-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.relation-tool-section-title {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 6px 2px;
+    margin-bottom: 2px;
+}
+
+.relation-tool-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    background: transparent;
+    transition: all 0.15s;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.relation-tool-btn:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
+}
+
+.relation-tool-btn.active {
+    background: var(--color-accent-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(71, 85, 105, 0.25);
+}
+
+.relation-tool-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 6px 0;
+}
+
+.relation-color-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px 2px;
+}
+
+.relation-color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+        transform 0.15s,
+        box-shadow 0.15s;
+    border: 2px solid transparent !important;
+}
+
+.relation-color-swatch:hover {
+    transform: scale(1.2);
+}
+
+.relation-color-swatch.active {
+    transform: scale(1.25);
+    border: 2px solid var(--color-accent-primary) !important;
+    box-shadow:
+        0 0 0 2px white,
+        0 0 0 4px var(--color-accent-primary);
+}
+
+/* Header */
+.relation-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-bg-card);
+    flex-shrink: 0;
+    min-width: 0;
+    gap: 8px;
+}
+
+.relation-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-accent-primary);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.relation-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.relation-pattern-select {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    outline: none;
+}
+
+.relation-pattern-select:focus {
+    border-color: var(--color-accent-primary);
+}
+
+.relation-header-btn {
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.relation-header-btn:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-accent-primary);
+}
+
+.relation-add-char-btn {
+    background: rgba(71, 85, 105, 0.08);
+    color: var(--color-accent-primary);
+    border-color: rgba(71, 85, 105, 0.2);
+}
+
+.relation-add-char-btn:hover {
+    background: rgba(71, 85, 105, 0.14);
+}
+
+/* Canvas */
+.relation-canvas {
+    background-color: var(--color-bg-primary) !important;
+}
+
+.relation-controls {
+    background: var(--color-bg-card) !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+    border-radius: 10px !important;
+}
+
+.relation-controls button {
+    background: var(--color-bg-card) !important;
+    color: var(--color-text-secondary) !important;
+    border-bottom: 1px solid var(--color-border) !important;
+}
+
+.relation-controls button:hover {
+    background: var(--color-bg-hover) !important;
+}
+
+.relation-minimap {
+    background: var(--color-bg-card) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 10px !important;
+}
+
+/* Character Node */
+.relation-character-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--color-bg-card);
+    border: 2px solid var(--color-accent-primary);
+    border-radius: 14px;
+    padding: 0;
+    min-width: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+.relation-character-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+}
+
+.relation-char-image {
+    width: 100%;
+    height: 80px;
+    overflow: hidden;
+}
+
+.relation-char-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.relation-char-placeholder {
+    width: 100%;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-muted);
+}
+
+.relation-char-name {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.relation-node-selected-ring {
+    position: absolute;
+    inset: -4px;
+    border: 2px solid var(--color-accent-primary);
+    border-radius: 16px;
+    pointer-events: none;
+    animation: pulse-ring 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Handles */
+.relation-handle {
+    width: 8px !important;
+    height: 8px !important;
+    background: var(--color-accent-primary) !important;
+    border: 2px solid white !important;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.react-flow__node:hover .relation-handle {
+    opacity: 1;
+}
+
+/* Rect Node */
+.relation-rect-node {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-style: solid;
+    transition: box-shadow 0.2s;
+}
+
+.relation-rect-label {
+    position: absolute;
+    top: 8px;
+    left: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    pointer-events: auto;
+}
+
+.relation-resize-line {
+    border-color: var(--color-accent-primary) !important;
+}
+
+.relation-resize-handle {
+    width: 10px !important;
+    height: 10px !important;
+    background: white !important;
+    border: 2px solid var(--color-accent-primary) !important;
+    border-radius: 3px !important;
+}
+
+/* Text Node */
+.relation-text-node {
+    padding: 4px 8px;
+    cursor: move;
+    min-width: 40px;
+}
+
+.relation-text-selected {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Inline Edit */
+.relation-inline-input {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid var(--color-accent-primary);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: inherit;
+    font-weight: inherit;
+    outline: none;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+}
+
+.relation-inline-textarea {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid var(--color-accent-primary);
+    border-radius: 4px;
+    padding: 4px 6px;
+    outline: none;
+    width: 100%;
+    min-width: 80px;
+    resize: none;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+}
+
+/* Edge Label */
+.relation-edge-label-input {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid var(--color-accent-primary);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    outline: none;
+    width: 110px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+}
+
+.relation-edge-selected {
+    filter: drop-shadow(0 0 4px rgba(71, 85, 105, 0.4));
+}
+
+/* Anchor nodes (invisible) */
+.relation-anchor-node {
+    opacity: 0;
+}
+
+.relation-anchor-node:hover {
+    opacity: 0.5;
+}
+
+/* Properties Panel */
+.relation-props-panel {
+    position: absolute;
+    top: 56px;
+    right: 12px;
+    z-index: 30;
+    width: 250px;
+    max-width: calc(100vw - 24px);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.1);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.relation-props-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.relation-props-delete {
+    padding: 4px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--color-danger);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.relation-props-delete:hover {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.relation-props-body {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.relation-props-body label {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.relation-props-body input[type="text"],
+.relation-props-body input:not([type]),
+.relation-props-body textarea {
+    width: 100%;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    font-size: 12px;
+    color: var(--color-text-primary);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.relation-props-body input:focus,
+.relation-props-body textarea:focus {
+    border-color: var(--color-accent-primary);
+}
+
+.relation-props-body input[type="range"] {
+    width: 100%;
+    accent-color: var(--color-accent-primary);
+}
+
+/* ===================================
+   Character Detail Styles
+   =================================== */
+
+/* Modal Backdrop */
+.char-detail-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.char-detail-modal-content {
+    width: min(480px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    max-height: 88vh;
+    background: var(--color-bg-card);
+    border-radius: 20px;
+    box-shadow:
+        0 8px 32px rgba(15, 23, 42, 0.18),
+        0 1px 4px rgba(15, 23, 42, 0.1);
+    overflow-y: auto;
+    animation: fadeIn 0.25s ease-out;
+}
+
+.char-detail-sidebar {
+    width: 320px;
+    border-left: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    height: 100%;
+    overflow-y: auto;
+}
+
+.char-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 5;
+}
+
+.char-detail-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-accent-primary);
+}
+
+.char-detail-close {
+    padding: 6px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.char-detail-close:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
+}
+
+.char-detail-image-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.char-detail-image-upload {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px dashed var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+}
+
+.char-detail-image-upload:hover {
+    border-color: var(--color-accent-primary);
+}
+
+.char-detail-image-upload img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.char-detail-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.char-detail-image-upload:hover .char-detail-image-overlay {
+    opacity: 1;
+}
+
+.char-detail-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+}
+
+.char-detail-image-remove {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--color-danger);
+    opacity: 0.7;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.char-detail-image-remove:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.char-detail-fields {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.char-detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.char-detail-field label {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.char-detail-field input,
+.char-detail-field select {
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.char-detail-field input:focus,
+.char-detail-field select:focus {
+    border-color: var(--color-accent-primary);
+}
+
+.char-detail-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.char-detail-section {
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.char-detail-section > label {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.char-detail-section textarea {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.char-detail-section textarea:focus {
+    border-color: var(--color-accent-primary);
+}
+
+.char-detail-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.char-detail-add-field {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(71, 85, 105, 0.08);
+    color: var(--color-accent-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.char-detail-add-field:hover {
+    background: rgba(71, 85, 105, 0.14);
+}
+
+.char-detail-profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.char-detail-profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.char-detail-profile-delete {
+    font-size: 10px;
+    color: var(--color-danger);
+    opacity: 0.5;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.char-detail-profile-delete:hover {
+    opacity: 1;
+}
+
+.char-detail-profile-field input {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    font-size: 12px;
+    color: var(--color-text-primary);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.char-detail-profile-field input:focus {
+    border-color: var(--color-accent-primary);
+}
+
+.char-detail-delete-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    background: transparent;
+    color: var(--color-danger);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s;
+    margin-top: 8px;
+}
+
+.char-detail-delete-btn:hover {
+    background: rgba(220, 38, 38, 0.06);
+}
+
+/* React Flow overrides - Anchor nodes (visible, draggable endpoints) */
+.relation-anchor-visible {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #475569;
+    cursor: move;
+    transition:
+        background-color 0.15s,
+        transform 0.15s;
+}
+
+.relation-anchor-visible:hover {
+    transform: scale(1.4);
+    background-color: rgba(71, 85, 105, 0.3) !important;
+}
+
+/* Target handles for incoming connections (invisible but measurable) */
+.relation-handle-target {
+    width: 10px !important;
+    height: 10px !important;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Visible handle dots on character nodes */
+.relation-handle-dot {
+    width: 10px !important;
+    height: 10px !important;
+    background: #475569 !important;
+    border: 2px solid #fff !important;
+    border-radius: 50% !important;
+    opacity: 0;
+    z-index: 10;
+    transition:
+        opacity 0.15s,
+        transform 0.15s;
+}
+
+.react-flow__node:hover .relation-handle-dot,
+.react-flow__node.selected .relation-handle-dot,
+.relation-any-handle-active .relation-handle-dot {
+    opacity: 1;
+}
+
+.relation-handle-dot:hover {
+    transform: scale(1.5);
+    background-color: #dc2626 !important;
+}
+
+/* Horizontal tool palette */
+.relation-tool-palette-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.relation-tool-hgroup {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.relation-tool-btn-h {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    padding: 0 10px;
+    height: 30px;
+    gap: 4px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.relation-tool-btn-h:hover {
+    background: var(--color-bg-active);
+    color: var(--color-text-primary);
+}
+
+.relation-tool-btn-h.active {
+    background: var(--color-accent-primary);
+    color: white;
+    border-color: var(--color-accent-primary);
+}
+
+.relation-tool-vsep {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border);
+    margin: 0 4px;
+}
+
+/* Character Tree Scroll Area (Custom Scrollbar to keep it compact) */
+.character-tree-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.character-tree-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+
+.character-tree-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
+
+.relation-color-swatch-sm {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.relation-color-swatch-sm.active {
+    border-color: var(--color-accent-primary);
+    transform: scale(1.2);
+}
+
+.relation-color-swatch-sm:hover {
+    transform: scale(1.15);
+}
+
+/* Tree view as left sidebar */
+.relation-tree-view {
+    width: 180px;
+    min-width: 150px;
+    max-width: 400px;
+    height: 100%;
+    /* Override flex behavior that shrinks elements */
+    flex: 0 0 auto;
+    border-right: 1px solid var(--color-border);
+    border-bottom: none;
+    background: var(--color-bg-secondary);
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    resize: horizontal;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Arrow direction buttons */
+.relation-arrow-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+/* Dynamic handle for easy connection */
+.relation-any-handle-active {
+    z-index: 10 !important;
+    pointer-events: auto !important;
+}
+
+.relation-arrow-btn:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-accent-primary);
+    color: var(--color-accent-primary);
+}
+
+/* OK button in character detail */
+.char-detail-ok-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+    background: rgba(22, 163, 74, 0.07);
+    color: #16a34a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+
+.char-detail-ok-btn:hover {
+    background: rgba(22, 163, 74, 0.13);
+}
+
+/* Cancel button in character detail */
+.char-detail-cancel-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s;
+    margin-top: 4px;
+}
+
+.char-detail-cancel-btn:hover {
+    background: var(--color-bg-hover);
+}
+
+/* Auto-align panel */
+.relation-align-panel {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 16px;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    font-size: 12px;
+}
+
+.relation-align-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.relation-align-row label {
+    white-space: nowrap;
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    min-width: 80px;
+}
+
+.relation-align-row input[type="range"] {
+    width: 100px;
+}
+
+.relation-align-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--color-accent-primary);
+    background: rgba(71, 85, 105, 0.08);
+    color: var(--color-accent-primary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.relation-align-btn:hover {
+    background: rgba(71, 85, 105, 0.15);
+}
+
+/* Character Tree View */
+.relation-tree-view {
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.relation-tree-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.relation-tree-header:hover {
+    background: var(--color-bg-hover);
+}
+
+.relation-tree-body {
+    padding: 0 0 4px 0;
+}
+
+.relation-tree-group {
+    margin: 0;
+}
+
+.relation-tree-group-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 12px 3px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.relation-tree-group-header:hover {
+    background: var(--color-bg-hover);
+}
+
+.relation-tree-group-name {
+    flex: 1;
+}
+
+.relation-tree-count {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    background: var(--color-bg-active);
+    padding: 0 5px;
+    border-radius: 8px;
+}
+
+.relation-tree-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 12px 3px 28px;
+    font-size: 11px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.relation-tree-item:hover {
+    background: rgba(71, 85, 105, 0.08);
+    color: var(--color-accent-primary);
+}
+
+/* Pattern Modal Overlay */
+.relation-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.relation-modal {
+    background: var(--color-bg-primary);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modal-pop 0.2s ease-out forwards;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+}
+
+@keyframes modal-pop {
+    0% {
+        transform: scale(0.96);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.relation-modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.relation-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
