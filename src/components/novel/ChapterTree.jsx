@@ -110,10 +110,7 @@ function SortableTreeItem({
     const [expanded, setExpanded] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(chapter.title);
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-        id: chapter.id,
-        disabled: isEditing, // 編集中はドラッグを無効化してDnD状態の破壊を防ぐ
-    });
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: chapter.id });
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -343,11 +340,28 @@ export default function ChapterTree({ collapsed = false }) {
         const siblings = chapters.filter((c) => c.parentId === targetParentId).sort((a, b) => a.order - b.order);
         const newOrder = [...siblings];
 
-        const activeIndex = newOrder.findIndex((c) => c.id === active.id);
-        if (activeIndex !== -1) newOrder.splice(activeIndex, 1);
+        // 移動元・移動先の元インデックスを記録してドラッグ方向を判定する
+        const activeOriginalIndex = newOrder.findIndex((c) => c.id === active.id);
+        const overOriginalIndex = newOrder.findIndex((c) => c.id === over.id);
 
-        const overIndex = newOrder.findIndex((c) => c.id === over.id);
-        const insertPos = overIndex !== -1 ? overIndex : newOrder.length;
+        // 同じ親内のアクティブアイテムを削除
+        if (activeOriginalIndex !== -1) newOrder.splice(activeOriginalIndex, 1);
+
+        // 削除後の over 位置を再取得
+        const overIndexAfterRemoval = newOrder.findIndex((c) => c.id === over.id);
+
+        let insertPos;
+        if (overIndexAfterRemoval !== -1) {
+            // 同じ親内を下方向にドラッグした場合は over の後ろへ挿入
+            if (activeOriginalIndex !== -1 && activeOriginalIndex < overOriginalIndex) {
+                insertPos = overIndexAfterRemoval + 1;
+            } else {
+                // 上方向ドラッグまたは異なる親からのドラッグは over の前へ挿入
+                insertPos = overIndexAfterRemoval;
+            }
+        } else {
+            insertPos = newOrder.length;
+        }
 
         newOrder.splice(insertPos, 0, activeItem);
 
