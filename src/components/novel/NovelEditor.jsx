@@ -50,6 +50,8 @@ const SortableBlock = memo(function SortableBlock({
             if (focusOption === 'end') {
                 const len = textareaRef.current.value.length;
                 textareaRef.current.setSelectionRange(len, len);
+            } else if (focusOption === 'start') {
+                textareaRef.current.setSelectionRange(0, 0);
             }
             onFocusComplete?.();
         }
@@ -219,6 +221,7 @@ export default function NovelEditor({ onScroll }) {
     const addTextBlock = useNovelStore((s) => s.addTextBlock);
     const updateTextBlock = useNovelStore((s) => s.updateTextBlock);
     const deleteTextBlock = useNovelStore((s) => s.deleteTextBlock);
+    const mergeBlocks = useNovelStore((s) => s.mergeBlocks);
     const reorderTextBlocks = useNovelStore((s) => s.reorderTextBlocks);
     const setFontSize = useNovelStore((s) => s.setFontSize);
     const formatDialogueSpacing = useNovelStore((s) => s.formatDialogueSpacing);
@@ -266,10 +269,11 @@ export default function NovelEditor({ onScroll }) {
     const handleCursorSet = useCallback(() => setPendingCursor(null), []);
 
     // グローバルキーボードショートカット（Ctrl+Z: アンドゥ、Ctrl+Y: リドゥ）
-    // テキストエリア・入力フィールド内ではネイティブアンドゥを妨げないようにスキップする
+    // IME変換中・検索置換フィールド(INPUT)はスキップ。TEXTAREA はZustandのUndo/Redoを優先する。
     useEffect(() => {
         const onKeyDown = (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+            if (e.isComposing) return;
+            if (e.target.tagName === 'INPUT') return;
             if (e.ctrlKey && !e.shiftKey && e.key === 'z') {
                 e.preventDefault();
                 undo();
@@ -292,17 +296,82 @@ export default function NovelEditor({ onScroll }) {
                     const key = addTextBlock(selectedChapterId, currentProject.id, '', block.order, block._key);
                     setFocusedBlockId({ id: key });
                 }
-            } else if (e.key === 'Backspace' && localContent === '') {
-                e.preventDefault();
-                const currentIndex = textBlocksRef.current.findIndex((b) => b._key === block._key);
-                if (currentIndex > 0) {
-                    const prevBlock = textBlocksRef.current[currentIndex - 1];
-                    deleteTextBlock(block._key);
-                    setFocusedBlockId({ id: prevBlock._key, option: 'end' });
+            } else if (e.key === 'Backspace') {
+                const selStart = e.target.selectionStart;
+                const selEnd = e.target.selectionEnd;
+                // カーソルが先頭かつ範囲選択なしのときのみカード間結合を処理
+                if (selStart === 0 && selEnd === 0) {
+                    e.preventDefault();
+                    const currentIndex = textBlocksRef.current.findIndex((b) => b._key === block._key);
+                    if (currentIndex > 0) {
+                        const prevBlock = textBlocksRef.current[currentIndex - 1];
+                        if (localContent === '') {
+                            // 現在カードが空 → 削除して前カードの末尾へフォーカス
+                            deleteTextBlock(block._key);
+                            setFocusedBlockId({ id: prevBlock._key, option: 'end' });
+                        } else if (prevBlock.content === '') {
+                            // 前カードが空 → 前カードを削除して現在のカードにとどまる
+                            deleteTextBlock(prevBlock._key);
+                        } else {
+                            // 両方テキストあり → 前カードの末尾に '\n' で結合
+                            // カーソルは '\n' の直後（元の現在カードのテキスト先頭）へ
+                            const cursorPos = prevBlock.content.length + 1;
+                            mergeBlocks(prevBlock._key, block._key);
+                            setFocusedBlockId({ id: prevBlock._key });
+                            setPendingCursor({ blockId: prevBlock._key, pos: cursorPos });
+                        }
+                    }
+                }
+            } else if (e.key === 'ArrowUp') {
+                // カーソルより前に '\n' がなければ先頭行にいる → 上のカードの末尾へ移動
+                const isOnFirstLine = !e.target.value.substring(0, e.target.selectionStart).includes('\n');
+                if (isOnFirstLine) {
+                    const currentIndex = textBlocksRef.current.findIndex((b) => b._key === block._key);
+                    if (currentIndex > 0) {
+                        e.preventDefault();
+                        const prevBlock = textBlocksRef.current[currentIndex - 1];
+                        setFocusedBlockId({ id: prevBlock._key, option: 'end' });
+                    }
+                }
+            } else if (e.key === 'ArrowDown') {
+                // カーソルより後に '\n' がなければ最終行にいる → 下のカードの先頭へ移動
+                const isOnLastLine = !e.target.value.substring(e.target.selectionStart).includes('\n');
+                if (isOnLastLine) {
+                    const currentIndex = textBlocksRef.current.findIndex((b) => b._key === block._key);
+                    if (currentIndex < textBlocksRef.current.length - 1) {
+                        e.preventDefault();
+                        const nextBlock = textBlocksRef.current[currentIndex + 1];
+                        setFocusedBlockId({ id: nextBlock._key, option: 'start' });
+                    }
+                }
+            } else if (e.key === 'Delete') {
+                const selStart = e.target.selectionStart;
+                const selEnd = e.target.selectionEnd;
+                // カーソルが末尾かつ範囲選択なしのときのみカード間結合を処理
+                if (selStart === localContent.length && selEnd === localContent.length) {
+                    e.preventDefault();
+                    const currentIndex = textBlocksRef.current.findIndex((b) => b._key === block._key);
+                    if (currentIndex < textBlocksRef.current.length - 1) {
+                        const nextBlock = textBlocksRef.current[currentIndex + 1];
+                        if (nextBlock.content === '') {
+                            // 次カードが空 → 次カードを削除して現在のカードにとどまる
+                            deleteTextBlock(nextBlock._key);
+                        } else if (localContent === '') {
+                            // 現在カードが空 → 現在カードを削除して次カードの先頭へフォーカス
+                            deleteTextBlock(block._key);
+                            setFocusedBlockId({ id: nextBlock._key, option: 'start' });
+                        } else {
+                            // 両方テキストあり → 次カードを現在カードの末尾に '\n' で結合
+                            // カーソルは '\n' の直前（現在カードの末尾）に留まる
+                            const cursorPos = localContent.length;
+                            mergeBlocks(block._key, nextBlock._key);
+                            setPendingCursor({ blockId: block._key, pos: cursorPos });
+                        }
+                    }
                 }
             }
         },
-        [currentProject, selectedChapterId, addTextBlock, deleteTextBlock],
+        [currentProject, selectedChapterId, addTextBlock, deleteTextBlock, mergeBlocks],
     );
 
     const handleAddBlock = useCallback(() => {
@@ -644,27 +713,23 @@ export default function NovelEditor({ onScroll }) {
                                 <Trash2 size={12} /> 地の文をすべて削除
                             </button>
                         </div>
-                        {/* 変数挿入: カテゴリタブ切り替え */}
-                        {(characters.some((c) => c.variableName) || locations.some((l) => l.variableName)) && (
-                            <div className="flex items-center gap-1 flex-wrap">
-                                <span className="text-xs text-text-muted shrink-0">変数:</span>
-                                {characters.some((c) => c.variableName) && (
-                                    <button
-                                        onClick={() => setActiveVarCategory((v) => (v === 'char' ? null : 'char'))}
-                                        className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${activeVarCategory === 'char' ? 'bg-rose-700/15 text-rose-700 border-rose-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
-                                    >
-                                        人物名 {activeVarCategory === 'char' ? '▴' : '▾'}
-                                    </button>
-                                )}
-                                {locations.some((l) => l.variableName) && (
-                                    <button
-                                        onClick={() => setActiveVarCategory((v) => (v === 'loc' ? null : 'loc'))}
-                                        className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${activeVarCategory === 'loc' ? 'bg-emerald-700/15 text-emerald-700 border-emerald-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
-                                    >
-                                        場所名 {activeVarCategory === 'loc' ? '▴' : '▾'}
-                                    </button>
-                                )}
-                                {activeVarCategory === 'char' &&
+                        {/* 変数挿入: カテゴリタブ切り替え（変数未登録時も常に表示） */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                            <span className="text-xs text-text-muted shrink-0">変数:</span>
+                            <button
+                                onClick={() => setActiveVarCategory((v) => (v === 'char' ? null : 'char'))}
+                                className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${activeVarCategory === 'char' ? 'bg-rose-700/15 text-rose-700 border-rose-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
+                            >
+                                人物名 {activeVarCategory === 'char' ? '▴' : '▾'}
+                            </button>
+                            <button
+                                onClick={() => setActiveVarCategory((v) => (v === 'loc' ? null : 'loc'))}
+                                className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${activeVarCategory === 'loc' ? 'bg-emerald-700/15 text-emerald-700 border-emerald-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
+                            >
+                                場所名 {activeVarCategory === 'loc' ? '▴' : '▾'}
+                            </button>
+                            {activeVarCategory === 'char' &&
+                                (characters.some((c) => c.variableName) ? (
                                     characters
                                         .filter((c) => c.variableName)
                                         .map((c, i) => (
@@ -675,8 +740,14 @@ export default function NovelEditor({ onScroll }) {
                                             >
                                                 {`{{${c.variableName}}}`}={c.name}
                                             </button>
-                                        ))}
-                                {activeVarCategory === 'loc' &&
+                                        ))
+                                ) : (
+                                    <span className="text-xs text-text-muted italic">
+                                        人物相関図モードで人物に変数名を登録してください
+                                    </span>
+                                ))}
+                            {activeVarCategory === 'loc' &&
+                                (locations.some((l) => l.variableName) ? (
                                     locations
                                         .filter((l) => l.variableName)
                                         .map((l, i) => (
@@ -687,9 +758,13 @@ export default function NovelEditor({ onScroll }) {
                                             >
                                                 {`{{${l.variableName}}}`}={l.name}
                                             </button>
-                                        ))}
-                            </div>
-                        )}
+                                        ))
+                                ) : (
+                                    <span className="text-xs text-text-muted italic">
+                                        地図モードで場所に変数名を登録してください
+                                    </span>
+                                ))}
+                        </div>
                     </div>
                 )}
             </div>

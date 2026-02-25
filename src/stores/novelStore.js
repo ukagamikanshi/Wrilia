@@ -411,6 +411,35 @@ const useNovelStore = create((set, get) => ({
         }
     },
 
+    // upperKey のカードと lowerKey のカードを '\n' で結合し lowerKey を削除する。
+    // pushToHistory を1回だけ呼んで Undo/Redo を1操作にまとめる。
+    mergeBlocks: (upperKey, lowerKey) => {
+        get().pushToHistory();
+        const blocks = get().textBlocks;
+        const upperBlock = blocks.find((b) => b._key === upperKey);
+        const lowerBlock = blocks.find((b) => b._key === lowerKey);
+        if (!upperBlock || !lowerBlock) return;
+
+        const mergedContent = upperBlock.content + '\n' + lowerBlock.content;
+
+        set((state) => ({
+            textBlocks: state.textBlocks
+                .filter((b) => b._key !== lowerKey)
+                .map((b) => (b._key === upperKey ? { ...b, content: mergedContent } : b)),
+        }));
+
+        if (upperBlock.id != null) {
+            db.textBlocks
+                .update(upperBlock.id, { content: mergedContent })
+                .catch((err) => console.error('mergeBlocks: upper更新失敗', err));
+        }
+        if (lowerBlock.id != null) {
+            db.textBlocks
+                .delete(lowerBlock.id)
+                .catch((err) => console.error('mergeBlocks: lower削除失敗', err));
+        }
+    },
+
     insertBlankLinesBetweenAllBlocks: async (chapterId, projectId) => {
         get().pushToHistory();
         await db.transaction('rw', db.textBlocks, async () => {

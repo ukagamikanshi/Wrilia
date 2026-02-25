@@ -124,9 +124,9 @@ function SortableTreeItem({
     };
 
     return (
-        <div ref={setNodeRef} style={style}>
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
             <div
-                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer transition-all group ${
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-grab active:cursor-grabbing transition-all group ${
                     selectedId === chapter.id
                         ? 'bg-accent-primary/20 text-accent-secondary border border-accent-primary/30'
                         : 'hover:bg-bg-hover text-text-secondary border border-transparent'
@@ -134,14 +134,9 @@ function SortableTreeItem({
                 style={{ paddingLeft: `${level * 16 + 8}px` }}
                 onClick={() => onSelect(chapter.id)}
             >
-                <button
-                    {...attributes}
-                    {...listeners}
-                    className="cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => e.stopPropagation()}
-                >
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <GripVertical size={12} className="text-text-muted" />
-                </button>
+                </span>
                 {children.length > 0 && (
                     <button
                         onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}

@@ -126,7 +126,7 @@ export default function Sidebar() {
                 // ファイル名から拡張子を除いた名前を「話」のタイトルにする
                 const title = file.name.replace(/\.[^.]+$/, '');
 
-                // 章の order を計算して DB に直接追加（ID を取得するため）
+                // 話の order を計算して DB に直接追加（ID を取得するため）
                 const siblings = await db.chapters
                     .where('projectId')
                     .equals(currentProject.id)
@@ -136,7 +136,7 @@ export default function Sidebar() {
                     projectId: currentProject.id,
                     parentId: null,
                     title,
-                    type: 'chapter',
+                    type: 'episode',
                     order: siblings.length,
                     createdAt: Date.now(),
                 });
