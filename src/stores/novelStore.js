@@ -411,6 +411,69 @@ const useNovelStore = create((set, get) => ({
         }
     },
 
+    // _key のカードをカーソル位置で2つに分割する。
+    // pushToHistory を1回だけ呼んで Undo/Redo を1操作にまとめる。
+    // 分割後の新カードの _key を返す（フォーカス設定のため）。
+    splitBlock: (_key, beforeContent, afterContent) => {
+        get().pushToHistory();
+
+        const currentBlocks = get().textBlocks;
+        const srcBlock = currentBlocks.find((b) => b._key === _key);
+        if (!srcBlock) return null;
+
+        const newKey = genKey();
+        const newOrder = srcBlock.order + 1;
+
+        // 楽観的更新: 元ブロックを beforeContent に更新し、直後に afterContent のブロックを挿入
+        set((state) => {
+            const idx = state.textBlocks.findIndex((b) => b._key === _key);
+            if (idx === -1) return state;
+            const next = [...state.textBlocks];
+            next[idx] = { ...next[idx], content: beforeContent };
+            next.splice(idx + 1, 0, {
+                id: null,
+                _key: newKey,
+                chapterId: srcBlock.chapterId,
+                projectId: srcBlock.projectId,
+                content: afterContent,
+                order: newOrder,
+            });
+            return { textBlocks: next };
+        });
+
+        // バックグラウンド: DB に永続化
+        (async () => {
+            // 元ブロックのコンテンツを更新
+            if (srcBlock.id != null) {
+                await db.textBlocks.update(srcBlock.id, { content: beforeContent });
+            }
+            // 元ブロックより後の既存ブロックの order を +1 ずらす
+            const toUpdate = currentBlocks.filter(
+                (b) => b._key !== _key && b.order >= newOrder && b.id != null,
+            );
+            if (toUpdate.length > 0) {
+                await db.transaction('rw', db.textBlocks, async () => {
+                    for (const b of toUpdate) {
+                        await db.textBlocks.update(b.id, { order: b.order + 1 });
+                    }
+                });
+            }
+            // 新ブロックを DB に追加
+            const id = await db.textBlocks.add({
+                chapterId: srcBlock.chapterId,
+                projectId: srcBlock.projectId,
+                content: afterContent,
+                order: newOrder,
+            });
+            // 楽観的更新したブロックに DB の id を付与
+            set((state) => ({
+                textBlocks: state.textBlocks.map((b) => (b._key === newKey ? { ...b, id } : b)),
+            }));
+        })().catch((err) => console.error('splitBlock: 永続化失敗', err));
+
+        return newKey;
+    },
+
     // upperKey のカードと lowerKey のカードを '\n' で結合し lowerKey を削除する。
     // pushToHistory を1回だけ呼んで Undo/Redo を1操作にまとめる。
     mergeBlocks: (upperKey, lowerKey) => {

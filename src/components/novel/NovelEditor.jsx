@@ -181,7 +181,11 @@ const SortableBlock = memo(function SortableBlock({
                     onBlur={() => handleSave()}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
-                            handleSave();
+                            // 分割前に localContent を即座に beforeContent へ更新する。
+                            // useEffect 経由の非同期更新を待つと 300ms デバウンスが
+                            // full_content でストアを上書きしてしまうケースがあるため。
+                            const selStart = e.target.selectionStart;
+                            setLocalContent(localContent.substring(0, selStart).replace(/\n$/, ''));
                         }
                         onKeyDown(e, block, localContent);
                     }}
@@ -221,6 +225,7 @@ export default function NovelEditor({ onScroll }) {
     const addTextBlock = useNovelStore((s) => s.addTextBlock);
     const updateTextBlock = useNovelStore((s) => s.updateTextBlock);
     const deleteTextBlock = useNovelStore((s) => s.deleteTextBlock);
+    const splitBlock = useNovelStore((s) => s.splitBlock);
     const mergeBlocks = useNovelStore((s) => s.mergeBlocks);
     const reorderTextBlocks = useNovelStore((s) => s.reorderTextBlocks);
     const setFontSize = useNovelStore((s) => s.setFontSize);
@@ -290,12 +295,15 @@ export default function NovelEditor({ onScroll }) {
         (e, block, localContent) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                if (currentProject && selectedChapterId) {
-                    // afterKey を渡すことで splice が _key 基準で挿入位置を確定し
-                    // 既存ブロックのオブジェクト参照を変えない → React.memo 効果を維持
-                    const key = addTextBlock(selectedChapterId, currentProject.id, '', block.order, block._key);
-                    setFocusedBlockId({ id: key });
-                }
+                const selStart = e.target.selectionStart;
+                // カーソルが '\n' の直後にある場合、beforeContent に末尾改行が残るため除去する
+                const beforeCursor = localContent.substring(0, selStart).replace(/\n$/, '');
+                // mergeBlocks 後のコンテンツ(upper+'\n'+lower)をカーソル前の'\n'で分割した場合、
+                // afterContent が '\n...' になり新カード先頭に空白行が生まれるため先頭の\n1文字を除去する
+                const afterCursor = localContent.substring(selStart).replace(/^\n/, '');
+                // splitBlock でアトミックに分割（updateTextBlock + addTextBlock の2重更新を避ける）
+                const key = splitBlock(block._key, beforeCursor, afterCursor);
+                if (key) setFocusedBlockId({ id: key, option: 'start' });
             } else if (e.key === 'Backspace') {
                 const selStart = e.target.selectionStart;
                 const selEnd = e.target.selectionEnd;
@@ -371,7 +379,7 @@ export default function NovelEditor({ onScroll }) {
                 }
             }
         },
-        [currentProject, selectedChapterId, addTextBlock, deleteTextBlock, mergeBlocks],
+        [splitBlock, deleteTextBlock, mergeBlocks],
     );
 
     const handleAddBlock = useCallback(() => {

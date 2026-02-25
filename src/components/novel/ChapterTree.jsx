@@ -110,7 +110,10 @@ function SortableTreeItem({
     const [expanded, setExpanded] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(chapter.title);
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: chapter.id });
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: chapter.id,
+        disabled: isEditing, // 編集中はドラッグを無効化してDnD状態の破壊を防ぐ
+    });
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -160,6 +163,7 @@ function SortableTreeItem({
                             }
                         }}
                         onKeyDown={(e) => {
+                            e.stopPropagation(); // KeyboardSensorへの伝播を防ぐ(Enterキーでドラッグが誤作動しないように)
                             if (e.key === 'Enter') {
                                 e.target.blur();
                             } else if (e.key === 'Escape') {
@@ -169,6 +173,7 @@ function SortableTreeItem({
                         }}
                         autoFocus
                         onClick={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()} // PointerSensorへの伝播を防ぐ
                         className="flex-1 text-xs px-1 py-0.5 border border-accent-primary/50 rounded bg-bg-primary text-text-primary outline-none"
                     />
                 ) : (
