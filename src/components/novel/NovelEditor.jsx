@@ -1,4 +1,4 @@
-import { closestCenter, DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { closestCenter, DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -37,6 +37,9 @@ const SortableBlock = memo(function SortableBlock({
     fontSize,
     cursorTarget,
     onCursorSet,
+    isSelected,
+    isGroupDragging,
+    onGripClick,
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block._key });
 
@@ -144,13 +147,15 @@ const SortableBlock = memo(function SortableBlock({
         <div
             ref={setNodeRef}
             style={style}
-            className={`group flex items-start gap-1 animate-fade-in ${isDragging ? 'z-50' : ''}`}
+            className={`group flex items-start gap-1 animate-fade-in ${isDragging ? 'z-50' : ''} ${isSelected ? 'bg-accent-primary/5 rounded-md' : ''} ${isGroupDragging ? 'opacity-40' : ''}`}
         >
             <button
                 {...attributes}
                 {...listeners}
-                className="mt-0.5 cursor-grab opacity-0 group-hover:opacity-100 transition-all shrink-0 flex items-center justify-center w-6 h-6 hover:bg-accent-primary/10 rounded text-text-muted hover:text-accent-secondary"
+                onClick={(e) => { e.stopPropagation(); onGripClick?.(e, block._key); }}
+                className={`mt-0.5 cursor-grab transition-all shrink-0 flex items-center justify-center w-6 h-6 hover:bg-accent-primary/10 rounded hover:text-accent-secondary ${isSelected ? 'opacity-100 text-accent-primary' : 'opacity-0 group-hover:opacity-100 text-text-muted'}`}
                 tabIndex={-1}
+                title={isSelected ? 'クリックで選択解除 / ドラッグで一括移動' : 'クリックで選択 / ドラッグで移動'}
             >
                 <GripVertical size={16} />
             </button>
@@ -256,12 +261,33 @@ export default function NovelEditor({ onScroll }) {
     const [isEmphasisModalOpen, setIsEmphasisModalOpen] = useState(false);
     const [activeVarCategory, setActiveVarCategory] = useState(null); // 'char' | 'loc' | null
 
+    // 複数カード選択
+    const [selectedBlockKeys, setSelectedBlockKeys] = useState(new Set());
+    const lastSelectedKeyRef = useRef(null);
+    const [activeBlockId, setActiveBlockId] = useState(null);
+
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
     const textBlocksRef = useRef(textBlocks);
     useEffect(() => {
         textBlocksRef.current = textBlocks;
     }, [textBlocks]);
+
+    // 章切り替え時に選択をクリア
+    useEffect(() => {
+        setSelectedBlockKeys(new Set());
+        lastSelectedKeyRef.current = null;
+    }, [selectedChapterId]);
+
+    // Escape キーで選択解除
+    useEffect(() => {
+        if (selectedBlockKeys.size === 0) return;
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') setSelectedBlockKeys(new Set());
+        };
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
+    }, [selectedBlockKeys]);
 
     const charCount = useMemo(() => textBlocks.reduce((sum, b) => sum + (b.content || '').length, 0), [textBlocks]);
 
@@ -272,6 +298,28 @@ export default function NovelEditor({ onScroll }) {
         [],
     );
     const handleCursorSet = useCallback(() => setPendingCursor(null), []);
+
+    // グリップクリック: 単独クリックでトグル選択、Shift+クリックで範囲選択
+    const handleGripClick = useCallback((e, blockKey) => {
+        setSelectedBlockKeys((prev) => {
+            const next = new Set(prev);
+            if (e.shiftKey && lastSelectedKeyRef.current) {
+                const keys = textBlocksRef.current.map((b) => b._key);
+                const from = keys.indexOf(lastSelectedKeyRef.current);
+                const to = keys.indexOf(blockKey);
+                const [start, end] = from <= to ? [from, to] : [to, from];
+                keys.slice(start, end + 1).forEach((k) => next.add(k));
+            } else {
+                next.has(blockKey) ? next.delete(blockKey) : next.add(blockKey);
+            }
+            return next;
+        });
+        lastSelectedKeyRef.current = blockKey;
+    }, []);
+
+    const handleDragStart = (event) => {
+        setActiveBlockId(event.active.id);
+    };
 
     // グローバルキーボードショートカット（Ctrl+Z: アンドゥ、Ctrl+Y: リドゥ）
     // IME変換中・検索置換フィールド(INPUT)はスキップ。TEXTAREA はZustandのUndo/Redoを優先する。
@@ -391,13 +439,43 @@ export default function NovelEditor({ onScroll }) {
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
+        setActiveBlockId(null);
         if (!over || active.id === over.id || !selectedChapterId) return;
-        const oldIndex = textBlocks.findIndex((b) => b._key === active.id);
-        const newIndex = textBlocks.findIndex((b) => b._key === over.id);
-        if (oldIndex !== -1 && newIndex !== -1) {
-            const newOrder = arrayMove(textBlocks, oldIndex, newIndex);
-            const reorderedIds = newOrder.map((b) => b.id).filter((id) => id != null);
+
+        if (selectedBlockKeys.size > 0 && selectedBlockKeys.has(active.id)) {
+            // 選択済みカードを掴んだ場合: 選択グループを一括移動
+            const selectedInOrder = textBlocks.filter((b) => selectedBlockKeys.has(b._key));
+            const activeOriginalIndex = textBlocks.findIndex((b) => b._key === active.id);
+            const overOriginalIndex = textBlocks.findIndex((b) => b._key === over.id);
+
+            // 選択カードを除いた残りリスト
+            const remaining = textBlocks.filter((b) => !selectedBlockKeys.has(b._key));
+            const overIndexInRemaining = remaining.findIndex((b) => b._key === over.id);
+
+            let insertPos;
+            if (overIndexInRemaining !== -1) {
+                // 下方向ドラッグ: over の後ろへ / 上方向: over の前へ
+                insertPos =
+                    activeOriginalIndex < overOriginalIndex
+                        ? overIndexInRemaining + 1
+                        : overIndexInRemaining;
+            } else {
+                insertPos = remaining.length;
+            }
+
+            remaining.splice(insertPos, 0, ...selectedInOrder);
+            const reorderedIds = remaining.map((b) => b.id).filter((id) => id != null);
             reorderTextBlocks(selectedChapterId, reorderedIds);
+            setSelectedBlockKeys(new Set());
+        } else {
+            // 未選択カードを掴んだ場合: 従来どおり単一移動
+            const oldIndex = textBlocks.findIndex((b) => b._key === active.id);
+            const newIndex = textBlocks.findIndex((b) => b._key === over.id);
+            if (oldIndex !== -1 && newIndex !== -1) {
+                const newOrder = arrayMove(textBlocks, oldIndex, newIndex);
+                const reorderedIds = newOrder.map((b) => b.id).filter((id) => id != null);
+                reorderTextBlocks(selectedChapterId, reorderedIds);
+            }
         }
     };
 
@@ -777,8 +855,27 @@ export default function NovelEditor({ onScroll }) {
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3" onScroll={onScroll}>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <div className="flex-1 relative overflow-hidden">
+                {/* 複数選択インジケーターバー: absolute配置でカードリストを押し下げない */}
+                {selectedBlockKeys.size > 0 && (
+                    <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-2 px-3 py-1.5 bg-accent-primary/10 border-b border-accent-primary/20 text-xs text-accent-secondary backdrop-blur-sm">
+                        <span>{selectedBlockKeys.size}枚選択中 — グリップをドラッグで一括移動 / Shift+クリックで範囲選択</span>
+                        <button
+                            onClick={() => setSelectedBlockKeys(new Set())}
+                            className="ml-auto hover:text-accent-primary transition-colors"
+                        >
+                            解除
+                        </button>
+                    </div>
+                )}
+                <div className="h-full overflow-y-auto p-3" onScroll={onScroll}>
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragCancel={() => setActiveBlockId(null)}
+                >
                     <SortableContext items={textBlocks.map((b) => b._key)} strategy={verticalListSortingStrategy}>
                         {textBlocks.map((block) => (
                             <SortableBlock
@@ -796,9 +893,44 @@ export default function NovelEditor({ onScroll }) {
                                 fontSize={fontSize}
                                 cursorTarget={pendingCursor?.blockId === block._key ? pendingCursor.pos : null}
                                 onCursorSet={handleCursorSet}
+                                isSelected={selectedBlockKeys.has(block._key)}
+                                isGroupDragging={
+                                    activeBlockId !== null &&
+                                    selectedBlockKeys.has(block._key) &&
+                                    block._key !== activeBlockId
+                                }
+                                onGripClick={handleGripClick}
                             />
                         ))}
                     </SortableContext>
+                    <DragOverlay>
+                        {activeBlockId
+                            ? (() => {
+                                  const block = textBlocks.find((b) => b._key === activeBlockId);
+                                  const extraCount = selectedBlockKeys.has(activeBlockId)
+                                      ? selectedBlockKeys.size - 1
+                                      : 0;
+                                  return block ? (
+                                      <div className="bg-bg-card border border-accent-primary/50 rounded-md px-3 py-2 shadow-lg opacity-90 max-w-sm">
+                                          <p
+                                              className="text-text-primary truncate"
+                                              style={{
+                                                  fontFamily: "'Noto Serif JP', serif",
+                                                  fontSize: `${fontSize}px`,
+                                              }}
+                                          >
+                                              {block.content || '(空白)'}
+                                          </p>
+                                          {extraCount > 0 && (
+                                              <p className="text-xs text-accent-primary font-medium mt-0.5">
+                                                  +{extraCount}枚
+                                              </p>
+                                          )}
+                                      </div>
+                                  ) : null;
+                              })()
+                            : null}
+                    </DragOverlay>
                 </DndContext>
                 {textBlocks.length === 0 && (
                     <div className="text-center py-12">
@@ -813,6 +945,7 @@ export default function NovelEditor({ onScroll }) {
                 )}
                 {/* 最下部カードの下に余白を確保するスペーサー */}
                 <div className="h-10" aria-hidden="true" />
+                </div>
             </div>
 
             <RubyModal
