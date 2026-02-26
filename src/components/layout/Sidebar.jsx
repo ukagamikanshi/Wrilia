@@ -69,6 +69,8 @@ export default function Sidebar() {
     const [showPermissionModal, setShowPermissionModal] = useState(false);
     const [permissionHandle, setPermissionHandle] = useState(null);
     const [saveFileHandle, setSaveFileHandle] = useState(null);
+    const [isSaved, setIsSaved] = useState(false);
+    const [lastSavedAt, setLastSavedAt] = useState(null); // number | null (Date.now())
     const fileInputRef = useRef(null);
     const textImportRef = useRef(null);
     const [isImporting, setIsImporting] = useState(false);
@@ -282,12 +284,20 @@ export default function Sidebar() {
         }
     };
 
+    // 保存成功時のフィードバック（1秒間ボタンを緑色に変え、最終保存日時を更新）
+    const notifySaveSuccess = () => {
+        setLastSavedAt(Date.now());
+        setIsSaved(true);
+        setTimeout(() => setIsSaved(false), 1000);
+    };
+
     // 保存（JSON）: 前回と同じファイルに上書き保存。初回のみダイアログを表示。
     const handleSave = async () => {
         if (!currentProject) return;
         if (saveFileHandle) {
             try {
                 await saveToFileHandle(saveFileHandle);
+                notifySaveSuccess();
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.error('保存に失敗しました:', err);
@@ -296,7 +306,10 @@ export default function Sidebar() {
             }
         } else {
             const handle = await saveWithPicker(currentProject?.name ?? 'project');
-            if (handle) setSaveFileHandle(handle);
+            if (handle) {
+                setSaveFileHandle(handle);
+                notifySaveSuccess();
+            }
         }
     };
 
@@ -811,11 +824,14 @@ export default function Sidebar() {
                     <button
                         onClick={handleSave}
                         disabled={!currentProject}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${!currentProject ? 'opacity-50 cursor-not-allowed text-text-muted' : 'text-text-secondary hover:bg-bg-hover hover:text-text-primary'}`}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${!currentProject ? 'opacity-50 cursor-not-allowed text-text-muted' : isSaved ? 'text-emerald-600 bg-emerald-50' : 'text-text-secondary hover:bg-bg-hover hover:text-text-primary'}`}
                     >
                         <Save size={15} className="shrink-0" />
                         <span className={`text-xs whitespace-nowrap transition-all duration-300 overflow-hidden ${collapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-full'}`}>保存（JSON）</span>
                     </button>
+                    {lastSavedAt && !collapsed && (
+                        <p className="text-xs text-text-muted px-3 pb-0.5">最終保存: {formatDate(lastSavedAt)}</p>
+                    )}
                     <button
                         onClick={handleSaveAs}
                         disabled={!currentProject}
