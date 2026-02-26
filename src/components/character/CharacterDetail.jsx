@@ -30,6 +30,9 @@ export default function CharacterDetail({ characterId, onClose, isModal = false 
             snapshot.current = {
                 name: character.name || '',
                 variableName: character.variableName || '',
+                nameFirst: character.nameFirst || '',
+                nameLast: character.nameLast || '',
+                nameMiddle: character.nameMiddle || '',
                 detail: character.detail || '',
                 color: character.color || 'zinc',
                 gender: character.gender || '',
@@ -42,6 +45,9 @@ export default function CharacterDetail({ characterId, onClose, isModal = false 
     const [localChars, setLocalChars] = useState({
         name: character?.name || '',
         variableName: character?.variableName || '',
+        nameFirst: character?.nameFirst || '',
+        nameLast: character?.nameLast || '',
+        nameMiddle: character?.nameMiddle || '',
         detail: character?.detail || '',
     });
     const [localProfile, setLocalProfile] = useState({});
@@ -51,6 +57,9 @@ export default function CharacterDetail({ characterId, onClose, isModal = false 
             setLocalChars({
                 name: character.name || '',
                 variableName: character.variableName || '',
+                nameFirst: character.nameFirst || '',
+                nameLast: character.nameLast || '',
+                nameMiddle: character.nameMiddle || '',
                 detail: character.detail || '',
             });
             try {
@@ -62,6 +71,9 @@ export default function CharacterDetail({ characterId, onClose, isModal = false 
             snapshot.current = {
                 name: character.name || '',
                 variableName: character.variableName || '',
+                nameFirst: character.nameFirst || '',
+                nameLast: character.nameLast || '',
+                nameMiddle: character.nameMiddle || '',
                 detail: character.detail || '',
                 color: character.color || 'zinc',
                 gender: character.gender || '',
@@ -222,6 +234,55 @@ export default function CharacterDetail({ characterId, onClose, isModal = false 
                     <label>名前</label>
                     <input value={localChars.name} onChange={(e) => handleLocalChange('name', e.target.value)} />
                 </div>
+
+                {/* 名前詳細: 姓・名・ミドルネーム（変数の姓/名別展開用） */}
+                <div className="char-detail-section">
+                    <div className="char-detail-section-header">
+                        <label>名前詳細 <span className="text-text-muted font-normal text-xs">（変数挿入で姓/名を個別展開）</span></label>
+                        {(localChars.nameLast || localChars.nameFirst) && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    // ミドルネームありの場合は英語順 (名 ミドル 姓)、なしの場合は日本語順 (姓名)
+                                    const full = localChars.nameMiddle
+                                        ? [localChars.nameFirst, localChars.nameMiddle, localChars.nameLast].filter(Boolean).join('・')
+                                        : [localChars.nameLast, localChars.nameFirst].filter(Boolean).join('');
+                                    handleLocalChange('name', full);
+                                }}
+                                className="char-detail-add-field"
+                            >
+                                名前に反映
+                            </button>
+                        )}
+                    </div>
+                    <div className="char-detail-field-row">
+                        <div className="char-detail-field">
+                            <label>姓 / Last name</label>
+                            <input
+                                value={localChars.nameLast}
+                                onChange={(e) => handleLocalChange('nameLast', e.target.value)}
+                                placeholder=""
+                            />
+                        </div>
+                        <div className="char-detail-field">
+                            <label>名 / First name</label>
+                            <input
+                                value={localChars.nameFirst}
+                                onChange={(e) => handleLocalChange('nameFirst', e.target.value)}
+                                placeholder=""
+                            />
+                        </div>
+                    </div>
+                    <div className="char-detail-field">
+                        <label>ミドルネーム / Middle name</label>
+                        <input
+                            value={localChars.nameMiddle}
+                            onChange={(e) => handleLocalChange('nameMiddle', e.target.value)}
+                            placeholder="（任意）"
+                        />
+                    </div>
+                </div>
+
                 <div className="char-detail-field-row">
                     <div className="char-detail-field">
                         <label>テーマカラー</label>

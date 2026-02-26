@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import db from '../../db/database';
+import db, { CURRENT_SCHEMA_VERSION } from '../../db/database';
 import useNovelStore from '../../stores/novelStore';
 import useProjectStore from '../../stores/projectStore';
 import { convertEmphasisForExport, resolveVariables } from '../../utils/textProcessing';
@@ -234,6 +234,21 @@ export default function Sidebar() {
         setPendingAction(null);
     };
 
+    // 現在のデータを保存してから新しいファイルを開く
+    const handleSaveAndOpen = async () => {
+        setShowOverwriteModal(false);
+        const handle = await saveWithPicker(currentProject?.name ?? 'project');
+        if (handle) {
+            setSaveFileHandle(handle);
+            if (pendingAction?.type === 'open') {
+                await executeOpenFile(pendingAction.file);
+            } else if (pendingAction?.type === 'create') {
+                await executeCreateProject();
+            }
+        }
+        setPendingAction(null);
+    };
+
     // ── Export helpers ──
     const collectProjectData = async (projectId) => {
         const tables = [
@@ -247,7 +262,7 @@ export default function Sidebar() {
             'locations',
             'settings',
         ];
-        const data = { project: await db.projects.get(projectId) };
+        const data = { schemaVersion: CURRENT_SCHEMA_VERSION, project: await db.projects.get(projectId) };
         for (const t of tables) {
             if (db[t]) data[t] = await db[t].where('projectId').equals(projectId).toArray();
         }
@@ -1052,22 +1067,32 @@ export default function Sidebar() {
                             <br />
                             別の作品を開いてもよろしいですか？
                         </p>
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => {
-                                    setShowOverwriteModal(false);
-                                    setPendingAction(null);
-                                }}
-                                className="px-6 py-2.5 rounded-lg text-sm border border-border hover:bg-bg-hover transition-colors"
-                            >
-                                キャンセル
-                            </button>
-                            <button
-                                onClick={handleConfirmOverwrite}
-                                className="px-6 py-2.5 rounded-lg text-sm bg-danger text-white hover:bg-danger/80 transition-colors font-medium"
-                            >
-                                開く
-                            </button>
+                        <div className="flex flex-col gap-2">
+                            {pendingAction?.type === 'open' && (
+                                <button
+                                    onClick={handleSaveAndOpen}
+                                    className="w-full px-6 py-2.5 rounded-lg text-sm bg-accent-primary text-white hover:bg-accent-primary/80 transition-colors font-medium"
+                                >
+                                    現在のデータを保存してから開く
+                                </button>
+                            )}
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => {
+                                        setShowOverwriteModal(false);
+                                        setPendingAction(null);
+                                    }}
+                                    className="px-6 py-2.5 rounded-lg text-sm border border-border hover:bg-bg-hover transition-colors"
+                                >
+                                    キャンセル
+                                </button>
+                                <button
+                                    onClick={handleConfirmOverwrite}
+                                    className="px-6 py-2.5 rounded-lg text-sm bg-danger text-white hover:bg-danger/80 transition-colors font-medium"
+                                >
+                                    保存せずに開く
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -13,7 +13,13 @@ export default function NovelPreview({ scrollRef }) {
 
     const variables = useMemo(
         () => [
-            ...characters.map((c) => ({ variableName: c.variableName, name: c.name })),
+            ...characters.map((c) => ({
+                variableName: c.variableName,
+                name: c.name,
+                nameFirst: c.nameFirst || '',
+                nameLast: c.nameLast || '',
+                nameMiddle: c.nameMiddle || '',
+            })),
             ...locations.map((l) => ({ variableName: l.variableName, name: l.name })),
         ],
         [characters, locations],

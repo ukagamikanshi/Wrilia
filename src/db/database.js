@@ -75,4 +75,20 @@ db.version(4)
         });
     });
 
+// キャラクターに姓・名・ミドルネームフィールドを追加
+db.version(5)
+    .stores({
+        characters:
+            '++id, projectId, parentId, type, order, name, variableName, gender, profile, detail, color, image, createdAt, nameFirst, nameLast, nameMiddle',
+    })
+    .upgrade((trans) => {
+        trans.characters.toCollection().modify((char) => {
+            if (char.nameFirst === undefined) char.nameFirst = '';
+            if (char.nameLast === undefined) char.nameLast = '';
+            if (char.nameMiddle === undefined) char.nameMiddle = '';
+        });
+    });
+
 export default db;
+
+export const CURRENT_SCHEMA_VERSION = 5;

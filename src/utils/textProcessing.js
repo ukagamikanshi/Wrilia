@@ -28,11 +28,23 @@ export function convertRubyToHtml(text) {
 }
 
 // 変数を実際の値に展開
+// サフィックス構文: {{varName:last}} → 姓, {{varName:first}} → 名, {{varName:middle}} → ミドルネーム
+// サフィックスなし: {{varName}} → フルネーム (name フィールド)
 export function resolveVariables(text, variables) {
     return text.replace(/\{\{(.+?)\}\}/g, (match, varName) => {
         const trimmed = varName.trim();
-        const variable = variables.find((v) => v.variableName === trimmed);
+        const colonIdx = trimmed.lastIndexOf(':');
+        let baseName = trimmed;
+        let suffix = null;
+        if (colonIdx !== -1) {
+            baseName = trimmed.substring(0, colonIdx);
+            suffix = trimmed.substring(colonIdx + 1);
+        }
+        const variable = variables.find((v) => v.variableName === baseName);
         if (variable) {
+            if (suffix === 'last') return variable.nameLast || variable.name || match;
+            if (suffix === 'first') return variable.nameFirst || variable.name || match;
+            if (suffix === 'middle') return variable.nameMiddle || variable.name || match;
             return variable.name || variable.value || match;
         }
         return match;

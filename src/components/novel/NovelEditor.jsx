@@ -259,7 +259,25 @@ export default function NovelEditor({ onScroll }) {
 
     const [isRubyModalOpen, setIsRubyModalOpen] = useState(false);
     const [isEmphasisModalOpen, setIsEmphasisModalOpen] = useState(false);
-    const [activeVarCategory, setActiveVarCategory] = useState(null); // 'char' | 'loc' | null
+
+    // 変数挿入ドロップダウン
+    // overflow-y-auto 親コンテナによるクリップを避けるため fixed 配置で座標計算して表示
+    const [charMenuOpen, setCharMenuOpen] = useState(false);
+    const [locMenuOpen, setLocMenuOpen] = useState(false);
+    const [charMenuPos, setCharMenuPos] = useState({ top: 0, left: 0 });
+    const [locMenuPos, setLocMenuPos] = useState({ top: 0, left: 0 });
+    const charMenuRef = useRef(null);
+    const locMenuRef = useRef(null);
+    const charBtnRef = useRef(null);
+    const locBtnRef = useRef(null);
+    useEffect(() => {
+        const handler = (e) => {
+            if (charMenuRef.current && !charMenuRef.current.contains(e.target)) setCharMenuOpen(false);
+            if (locMenuRef.current && !locMenuRef.current.contains(e.target)) setLocMenuOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
     // 複数カード選択
     const [selectedBlockKeys, setSelectedBlockKeys] = useState(new Set());
@@ -799,57 +817,124 @@ export default function NovelEditor({ onScroll }) {
                                 <Trash2 size={12} /> 地の文をすべて削除
                             </button>
                         </div>
-                        {/* 変数挿入: カテゴリタブ切り替え（変数未登録時も常に表示） */}
-                        <div className="flex items-center gap-1 flex-wrap">
+                        {/* 変数挿入: カスタムドロップダウン */}
+                        <div className="flex items-center gap-1">
                             <span className="text-xs text-text-muted shrink-0">変数:</span>
-                            <button
-                                onClick={() => setActiveVarCategory((v) => (v === 'char' ? null : 'char'))}
-                                className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${activeVarCategory === 'char' ? 'bg-rose-700/15 text-rose-700 border-rose-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
-                            >
-                                人物名 {activeVarCategory === 'char' ? '▴' : '▾'}
-                            </button>
-                            <button
-                                onClick={() => setActiveVarCategory((v) => (v === 'loc' ? null : 'loc'))}
-                                className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${activeVarCategory === 'loc' ? 'bg-emerald-700/15 text-emerald-700 border-emerald-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
-                            >
-                                場所名 {activeVarCategory === 'loc' ? '▴' : '▾'}
-                            </button>
-                            {activeVarCategory === 'char' &&
-                                (characters.some((c) => c.variableName) ? (
-                                    characters
-                                        .filter((c) => c.variableName)
-                                        .map((c, i) => (
-                                            <button
-                                                key={`char-${i}`}
-                                                onClick={() => insertVariable(c.variableName)}
-                                                className="px-2 py-0.5 rounded text-xs bg-rose-700/10 text-rose-700 hover:bg-rose-700/20 transition-colors"
-                                            >
-                                                {`{{${c.variableName}}}`}={c.name}
-                                            </button>
-                                        ))
-                                ) : (
-                                    <span className="text-xs text-text-muted italic">
-                                        人物相関図モードで人物に変数名を登録してください
-                                    </span>
-                                ))}
-                            {activeVarCategory === 'loc' &&
-                                (locations.some((l) => l.variableName) ? (
-                                    locations
-                                        .filter((l) => l.variableName)
-                                        .map((l, i) => (
-                                            <button
-                                                key={`loc-${i}`}
-                                                onClick={() => insertVariable(l.variableName)}
-                                                className="px-2 py-0.5 rounded text-xs bg-emerald-700/10 text-emerald-700 hover:bg-emerald-700/20 transition-colors"
-                                            >
-                                                {`{{${l.variableName}}}`}={l.name}
-                                            </button>
-                                        ))
-                                ) : (
-                                    <span className="text-xs text-text-muted italic">
-                                        地図モードで場所に変数名を登録してください
-                                    </span>
-                                ))}
+
+                            {/* 人物名ドロップダウン */}
+                            <div className="relative" ref={charMenuRef}>
+                                <button
+                                    type="button"
+                                    ref={charBtnRef}
+                                    onClick={() => {
+                                        if (charBtnRef.current) {
+                                            const r = charBtnRef.current.getBoundingClientRect();
+                                            setCharMenuPos({ top: r.bottom + 2, left: r.left });
+                                        }
+                                        setCharMenuOpen((v) => !v);
+                                        setLocMenuOpen(false);
+                                    }}
+                                    className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${charMenuOpen ? 'bg-rose-700/15 text-rose-700 border-rose-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
+                                >
+                                    人物名 {charMenuOpen ? '▴' : '▾'}
+                                </button>
+                                {charMenuOpen && (
+                                    <div className="fixed z-[200] min-w-[9rem] bg-bg-card border border-border rounded shadow-lg py-1" style={{ top: charMenuPos.top, left: charMenuPos.left }}>
+                                        {characters.some((c) => c.variableName) ? (
+                                            characters
+                                                .filter((c) => c.variableName)
+                                                .map((c, i) => {
+                                                    const hasNameParts = c.nameLast || c.nameFirst;
+                                                    return (
+                                                        <div key={`cm-${i}`} className="relative group">
+                                                            <div
+                                                                className="flex items-center justify-between px-3 py-1.5 text-xs hover:bg-bg-hover cursor-pointer select-none"
+                                                                onClick={
+                                                                    !hasNameParts
+                                                                        ? () => { insertVariable(c.variableName); setCharMenuOpen(false); }
+                                                                        : undefined
+                                                                }
+                                                            >
+                                                                <span>{c.name}</span>
+                                                                {hasNameParts && <span className="ml-2 text-text-muted text-[10px]">›</span>}
+                                                            </div>
+                                                            {hasNameParts && (
+                                                                <div className="absolute left-full top-0 hidden group-hover:block min-w-[10rem] bg-bg-card border border-border rounded shadow-lg py-1 z-50">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => { insertVariable(c.variableName); setCharMenuOpen(false); }}
+                                                                        className="w-full text-left px-3 py-1.5 text-xs hover:bg-bg-hover"
+                                                                    >
+                                                                        フルネーム
+                                                                    </button>
+                                                                    {c.nameLast && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => { insertVariable(`${c.variableName}:last`); setCharMenuOpen(false); }}
+                                                                            className="w-full text-left px-3 py-1.5 text-xs hover:bg-bg-hover"
+                                                                        >
+                                                                            姓 — {c.nameLast}
+                                                                        </button>
+                                                                    )}
+                                                                    {c.nameFirst && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => { insertVariable(`${c.variableName}:first`); setCharMenuOpen(false); }}
+                                                                            className="w-full text-left px-3 py-1.5 text-xs hover:bg-bg-hover"
+                                                                        >
+                                                                            名 — {c.nameFirst}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                        ) : (
+                                            <div className="px-3 py-1.5 text-xs text-text-muted italic">変数名未登録</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 場所名ドロップダウン */}
+                            <div className="relative" ref={locMenuRef}>
+                                <button
+                                    type="button"
+                                    ref={locBtnRef}
+                                    onClick={() => {
+                                        if (locBtnRef.current) {
+                                            const r = locBtnRef.current.getBoundingClientRect();
+                                            setLocMenuPos({ top: r.bottom + 2, left: r.left });
+                                        }
+                                        setLocMenuOpen((v) => !v);
+                                        setCharMenuOpen(false);
+                                    }}
+                                    className={`px-2 py-0.5 rounded text-xs border transition-colors font-medium ${locMenuOpen ? 'bg-emerald-700/15 text-emerald-700 border-emerald-700/40' : 'bg-bg-card border-border hover:bg-bg-hover text-text-primary'}`}
+                                >
+                                    場所名 {locMenuOpen ? '▴' : '▾'}
+                                </button>
+                                {locMenuOpen && (
+                                    <div className="fixed z-[200] min-w-[9rem] bg-bg-card border border-border rounded shadow-lg py-1" style={{ top: locMenuPos.top, left: locMenuPos.left }}>
+                                        {locations.some((l) => l.variableName) ? (
+                                            locations
+                                                .filter((l) => l.variableName)
+                                                .map((l, i) => (
+                                                    <button
+                                                        key={`lm-${i}`}
+                                                        type="button"
+                                                        onClick={() => { insertVariable(l.variableName); setLocMenuOpen(false); }}
+                                                        className="w-full text-left px-3 py-1.5 text-xs hover:bg-bg-hover"
+                                                    >
+                                                        {l.name}
+                                                    </button>
+                                                ))
+                                        ) : (
+                                            <div className="px-3 py-1.5 text-xs text-text-muted italic">変数名未登録</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

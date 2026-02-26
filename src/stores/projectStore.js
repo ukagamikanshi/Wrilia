@@ -1,5 +1,20 @@
 import { create } from 'zustand';
-import db from '../db/database';
+import db, { CURRENT_SCHEMA_VERSION } from '../db/database';
+
+// 古いスキーマのJSONデータを現在のスキーマに正規化する（インポート前処理）
+function normalizeJsonData(jsonData) {
+    const schemaVersion = jsonData.schemaVersion || 0;
+    // v5 未満: キャラクターに nameFirst/nameLast/nameMiddle を補完
+    if (schemaVersion < 5 && jsonData.characters?.length) {
+        jsonData.characters = jsonData.characters.map((char) => ({
+            nameFirst: '',
+            nameLast: '',
+            nameMiddle: '',
+            ...char,
+        }));
+    }
+    return jsonData;
+}
 
 const useProjectStore = create((set, get) => ({
     projects: [], // kept for compatibility, but always has max 1 project
@@ -9,6 +24,8 @@ const useProjectStore = create((set, get) => ({
     directoryHandle: null,
     // Plan B: 自動保存の異常検知用。前回保存時のデータ件数を記録する
     lastSaveStats: null, // { chapterCount: number, textBlockCount: number } | null
+    // Plan C: 起動後の初回自動保存時にのみタイムスタンプ付きバックアップを作成するフラグ
+    sessionBackupDone: false,
 
     // Plan A: 起動時に IndexedDB から既存プロジェクトを復元する。
     // 明示的な「新規作成」「インポート」「閉じる」操作以外ではデータを消去しない。
@@ -36,7 +53,7 @@ const useProjectStore = create((set, get) => ({
             db.settings.clear(),
             db.variables.clear(),
         ]);
-        set({ projects: [], currentProject: null, lastSaveStats: null });
+        set({ projects: [], currentProject: null, lastSaveStats: null, sessionBackupDone: false });
     },
 
     createProject: async (name) => {
@@ -91,6 +108,9 @@ const useProjectStore = create((set, get) => ({
         await get().initStore();
         if (!jsonData || !jsonData.project) throw new Error('Invalid project data');
 
+        // 古いスキーマのデータを現在のスキーマに正規化する
+        const normalized = normalizeJsonData(jsonData);
+
         await db.transaction(
             'rw',
             db.projects,
@@ -105,21 +125,21 @@ const useProjectStore = create((set, get) => ({
             db.settings,
             db.variables,
             async () => {
-                await db.projects.add(jsonData.project);
-                if (jsonData.chapters?.length) await db.chapters.bulkAdd(jsonData.chapters);
-                if (jsonData.textBlocks?.length) await db.textBlocks.bulkAdd(jsonData.textBlocks);
-                if (jsonData.plots?.length) await db.plots.bulkAdd(jsonData.plots);
-                if (jsonData.characters?.length) await db.characters.bulkAdd(jsonData.characters);
-                if (jsonData.relationships?.length) await db.relationships.bulkAdd(jsonData.relationships);
-                if (jsonData.relationPatterns?.length) await db.relationPatterns.bulkAdd(jsonData.relationPatterns);
-                if (jsonData.mapPatterns?.length) await db.mapPatterns.bulkAdd(jsonData.mapPatterns);
-                if (jsonData.locations?.length) await db.locations.bulkAdd(jsonData.locations);
-                if (jsonData.settings?.length) await db.settings.bulkAdd(jsonData.settings);
-                if (jsonData.variables?.length) await db.variables.bulkAdd(jsonData.variables);
+                await db.projects.add(normalized.project);
+                if (normalized.chapters?.length) await db.chapters.bulkAdd(normalized.chapters);
+                if (normalized.textBlocks?.length) await db.textBlocks.bulkAdd(normalized.textBlocks);
+                if (normalized.plots?.length) await db.plots.bulkAdd(normalized.plots);
+                if (normalized.characters?.length) await db.characters.bulkAdd(normalized.characters);
+                if (normalized.relationships?.length) await db.relationships.bulkAdd(normalized.relationships);
+                if (normalized.relationPatterns?.length) await db.relationPatterns.bulkAdd(normalized.relationPatterns);
+                if (normalized.mapPatterns?.length) await db.mapPatterns.bulkAdd(normalized.mapPatterns);
+                if (normalized.locations?.length) await db.locations.bulkAdd(normalized.locations);
+                if (normalized.settings?.length) await db.settings.bulkAdd(normalized.settings);
+                if (normalized.variables?.length) await db.variables.bulkAdd(normalized.variables);
             },
         );
 
-        const project = await db.projects.get(jsonData.project.id);
+        const project = await db.projects.get(normalized.project.id);
         set({ projects: [project], currentProject: project });
         return project;
     },
@@ -134,7 +154,7 @@ const useProjectStore = create((set, get) => ({
     },
 
     triggerAutoSave: async () => {
-        const { currentProject, directoryHandle, lastSaveStats } = get();
+        const { currentProject, directoryHandle, lastSaveStats, sessionBackupDone } = get();
         if (!currentProject || !directoryHandle) return;
 
         try {
@@ -182,26 +202,47 @@ const useProjectStore = create((set, get) => ({
 
             const fileName = `${currentProject.name || 'autosave'}.json`;
 
-            // Plan C: 既存ファイルをバックアップしてから上書きする
-            try {
-                const existingHandle = await directoryHandle.getFileHandle(fileName);
-                const existingFile = await existingHandle.getFile();
-                const existingContent = await existingFile.text();
-                // 既存ファイルが有効なデータを含む場合のみバックアップを作成
-                if (existingContent && existingContent.length > 10) {
-                    const bakFileName = `${currentProject.name || 'autosave'}.bak.json`;
-                    const bakHandle = await directoryHandle.getFileHandle(bakFileName, { create: true });
-                    const bakWritable = await bakHandle.createWritable();
-                    await bakWritable.write(existingContent);
-                    await bakWritable.close();
+            // Plan C: 起動後の初回自動保存時のみ、タイムスタンプ付きバックアップを作成する
+            // ファイルが増え続けないよう、同日のバックアップが既に存在する場合は作成しない
+            if (!sessionBackupDone) {
+                try {
+                    const today = new Date();
+                    const pad = (n) => String(n).padStart(2, '0');
+                    const dateStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+                    const bakFileName = `${currentProject.name || 'autosave'}.bak.${dateStr}.json`;
+                    // 同日バックアップが既にある場合は作成しない
+                    let bakExists = false;
+                    try {
+                        await directoryHandle.getFileHandle(bakFileName);
+                        bakExists = true;
+                    } catch {
+                        // ファイルなし → 作成へ
+                    }
+                    if (!bakExists) {
+                        try {
+                            const existingHandle = await directoryHandle.getFileHandle(fileName);
+                            const existingFile = await existingHandle.getFile();
+                            const existingContent = await existingFile.text();
+                            if (existingContent && existingContent.length > 10) {
+                                const bakHandle = await directoryHandle.getFileHandle(bakFileName, { create: true });
+                                const bakWritable = await bakHandle.createWritable();
+                                await bakWritable.write(existingContent);
+                                await bakWritable.close();
+                            }
+                        } catch {
+                            // メインファイルが存在しない（初回保存）場合はスキップ
+                        }
+                    }
+                } catch {
+                    // バックアップ失敗は保存処理を止めない
+                } finally {
+                    set({ sessionBackupDone: true });
                 }
-            } catch {
-                // ファイルが存在しない（初回保存）場合はスキップ
             }
 
             const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
             const writable = await fileHandle.createWritable();
-            await writable.write(JSON.stringify(data, null, 2));
+            await writable.write(JSON.stringify({ schemaVersion: CURRENT_SCHEMA_VERSION, ...data }, null, 2));
             await writable.close();
 
             // Plan B: 保存成功後に件数を記録
