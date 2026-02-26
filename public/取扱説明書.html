@@ -669,7 +669,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
 
       <div class="box box-warn">
         <p><span class="box-icon">⚠️</span><strong>ひとつだけ注意点があります</strong></p>
-        <p>「画面の再読み込み」「ブラウザの閲覧データを削除」「キャッシュのクリア」などの操作をすると、Wriliaに保存していたデータも一緒に消えてしまいます。</p>
+        <p>「ブラウザの閲覧データを削除」「キャッシュのクリア」などの操作をすると、Wriliaに保存していたデータも一緒に消えてしまいます。</p>
         <p><strong>必ず定期的に「JSON保存」でバックアップを取ってください。</strong>（詳しくは <a href="#s11" style="color:var(--warn);">保存・書き出し方法</a> をご覧ください）</p>
       </div>
     </section>
@@ -1119,6 +1119,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
           </ol>
           <div class="box box-warn" style="margin-bottom:0">
             <p><span class="box-icon">⚠️</span>ブラウザのセキュリティ仕様により、長時間操作しないと許可を再確認されることがあります。FirefoxとSafariではこの機能を使えません（手動でJSONを保存してください）。</p>
+            <p><span class="box-icon">⚠️</span>うっかり原稿を削除した場合も自動保存されてしまうのでご注意ください。</p>
           </div>
         </div>
       </div>
@@ -1174,7 +1175,8 @@ hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
       <div class="box box-warn">
         <p><span class="box-icon">⚠️</span><strong>次の操作をすると、Wriliaのデータが消えます：</strong></p>
         <ul style="margin:8px 0 0 1.5em;">
-          <li>ブラウザの「画面を再読み込み」</li>
+          <li><S>ブラウザの「画面を再読み込み」</S></li>
+          <P>※アップデートにより画面の再読み込みでは消えなくなりました</P>
           <li>ブラウザの「閲覧データを削除」</li>
           <li>ブラウザの「キャッシュをクリア」</li>
           <li>ブラウザを閉じる</li>

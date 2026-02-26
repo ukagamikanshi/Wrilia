@@ -7,6 +7,18 @@ const useProjectStore = create((set, get) => ({
     autoSaveInterval: 0,
     lastAutoSave: null,
     directoryHandle: null,
+    // Plan B: 自動保存の異常検知用。前回保存時のデータ件数を記録する
+    lastSaveStats: null, // { chapterCount: number, textBlockCount: number } | null
+
+    // Plan A: 起動時に IndexedDB から既存プロジェクトを復元する。
+    // 明示的な「新規作成」「インポート」「閉じる」操作以外ではデータを消去しない。
+    loadExistingProject: async () => {
+        const count = await db.projects.count();
+        if (count === 0) return; // プロジェクトなし
+        const project = await db.projects.toCollection().first();
+        if (!project) return;
+        set({ projects: [project], currentProject: project });
+    },
 
     // Clear all tables
     initStore: async () => {
@@ -24,7 +36,7 @@ const useProjectStore = create((set, get) => ({
             db.settings.clear(),
             db.variables.clear(),
         ]);
-        set({ projects: [], currentProject: null });
+        set({ projects: [], currentProject: null, lastSaveStats: null });
     },
 
     createProject: async (name) => {
@@ -114,7 +126,7 @@ const useProjectStore = create((set, get) => ({
 
     closeProject: async () => {
         await get().initStore();
-        set({ autoSaveInterval: 0, lastAutoSave: null, directoryHandle: null });
+        set({ autoSaveInterval: 0, lastAutoSave: null, directoryHandle: null, lastSaveStats: null });
     },
 
     setAutoSaveConfig: (interval, handle) => {
@@ -122,7 +134,7 @@ const useProjectStore = create((set, get) => ({
     },
 
     triggerAutoSave: async () => {
-        const { currentProject, directoryHandle } = get();
+        const { currentProject, directoryHandle, lastSaveStats } = get();
         if (!currentProject || !directoryHandle) return;
 
         try {
@@ -142,19 +154,58 @@ const useProjectStore = create((set, get) => ({
                 'mapPatterns',
                 'locations',
                 'settings',
+                'variables', // 以前は保存漏れがあったため追加
             ];
             const data = { project: currentProject };
             for (const t of tables) {
                 if (db[t]) data[t] = await db[t].where('projectId').equals(currentProject.id).toArray();
             }
 
+            // Plan B: データ整合性チェック ─ 章が0件は異常（プロジェクトが開いている限り必ず1件以上存在する）
+            const chapterCount = data.chapters?.length ?? 0;
+            if (chapterCount === 0) {
+                console.warn('[AutoSave] blocked: no chapters found. Possible data corruption, skipping write.');
+                return;
+            }
+
+            // Plan B: textBlocks が前回保存時の5%未満（かつ前回が50件以上）なら異常として書き込みをスキップ
+            const textBlockCount = data.textBlocks?.length ?? 0;
+            if (lastSaveStats && lastSaveStats.textBlockCount >= 50) {
+                if (textBlockCount < lastSaveStats.textBlockCount * 0.05) {
+                    console.warn('[AutoSave] blocked: suspicious reduction in text blocks.', {
+                        previous: lastSaveStats.textBlockCount,
+                        current: textBlockCount,
+                    });
+                    return;
+                }
+            }
+
             const fileName = `${currentProject.name || 'autosave'}.json`;
+
+            // Plan C: 既存ファイルをバックアップしてから上書きする
+            try {
+                const existingHandle = await directoryHandle.getFileHandle(fileName);
+                const existingFile = await existingHandle.getFile();
+                const existingContent = await existingFile.text();
+                // 既存ファイルが有効なデータを含む場合のみバックアップを作成
+                if (existingContent && existingContent.length > 10) {
+                    const bakFileName = `${currentProject.name || 'autosave'}.bak.json`;
+                    const bakHandle = await directoryHandle.getFileHandle(bakFileName, { create: true });
+                    const bakWritable = await bakHandle.createWritable();
+                    await bakWritable.write(existingContent);
+                    await bakWritable.close();
+                }
+            } catch {
+                // ファイルが存在しない（初回保存）場合はスキップ
+            }
+
             const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
             const writable = await fileHandle.createWritable();
             await writable.write(JSON.stringify(data, null, 2));
             await writable.close();
 
-            set({ lastAutoSave: Date.now() });
+            // Plan B: 保存成功後に件数を記録
+            set({ lastAutoSave: Date.now(), lastSaveStats: { chapterCount, textBlockCount } });
         } catch (error) {
             console.error('Auto-save failed:', error);
         }

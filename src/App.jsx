@@ -112,12 +112,14 @@ function NovelPage() {
 }
 
 function App() {
-    const { initStore, currentProject } = useProjectStore();
+    const { loadExistingProject, currentProject } = useProjectStore();
     const { loadCharacters } = useCharacterStore();
     const { loadLocations } = useMapStore();
 
+    // Plan A: 起動時は initStore() を呼ばず、IndexedDB に残っているプロジェクトを復元する。
+    // データの消去は「新規作成」「インポート」「作品を閉じる」操作時のみ行う。
     useEffect(() => {
-        initStore();
+        loadExistingProject();
     }, []);
 
     useEffect(() => {

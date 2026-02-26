@@ -308,7 +308,7 @@ export default function NovelEditor({ onScroll }) {
                 const from = keys.indexOf(lastSelectedKeyRef.current);
                 const to = keys.indexOf(blockKey);
                 const [start, end] = from <= to ? [from, to] : [to, from];
-                keys.slice(start, end + 1).forEach((k) => next.add(k));
+                keys.slice(start, end + 1).forEach((k) => { next.add(k); });
             } else {
                 next.has(blockKey) ? next.delete(blockKey) : next.add(blockKey);
             }
